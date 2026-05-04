@@ -11,6 +11,38 @@ let leadershipRoles = [];
 let allMembers = [];
 let allEvents = [];
 
+const isStaticHosting = location.hostname.endsWith('github.io') || location.protocol === 'file:';
+
+function readList(key) {
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
+
+function getStaticApiData(action) {
+    switch (action) {
+        case 'getLeaders':
+            return { success: true, data: readList('publicLeaders') };
+        case 'getGallery':
+            return { success: true, data: readList('galleryItems') };
+        case 'getAllHadiths':
+            return { success: true, data: readList('adminHadiths') };
+        case 'getDailyHadith': {
+            const hadiths = readList('adminHadiths');
+            if (hadiths.length === 0) {
+                return { success: false, data: null };
+            }
+            const index = new Date().getDate() % hadiths.length;
+            return {
+                success: true,
+                data: hadiths[index],
+                position: index + 1,
+                total: hadiths.length
+            };
+        }
+        default:
+            return { success: false, data: [] };
+    }
+}
+
 // PAGE NAVIGATION FUNCTIONS
 function showLanding() {
     document.getElementById('landingPage').classList.add('active');
@@ -77,9 +109,11 @@ function loadLeadershipContent() {
     const leadershipContainer = document.getElementById('leadershipContainer');
     if (!leadershipContainer) return;
 
-    // First try to load from database
-    fetch('admin_api.php?action=getLeaders')
-    .then(response => response.json())
+    const leadershipRequest = isStaticHosting
+        ? Promise.resolve(getStaticApiData('getLeaders'))
+        : fetch('admin_api.php?action=getLeaders').then(response => response.json());
+
+    leadershipRequest
     .then(result => {
         let leaders = result.data || [];
         
@@ -112,7 +146,7 @@ function loadLeadershipContent() {
         `).join('');
     })
     .catch(error => {
-        console.log('Database fetch failed, trying localStorage:', error);
+        console.log('Dynamic content unavailable, using local data:', error);
         // Fallback to localStorage
         const publicLeaders = JSON.parse(localStorage.getItem('publicLeaders')) || [];
         
@@ -145,9 +179,11 @@ function loadGalleryContent() {
     const galleryContainer = document.getElementById('galleryContainer');
     if (!galleryContainer) return;
 
-    // First try to load from database
-    fetch('admin_api.php?action=getGallery')
-    .then(response => response.json())
+    const galleryRequest = isStaticHosting
+        ? Promise.resolve(getStaticApiData('getGallery'))
+        : fetch('admin_api.php?action=getGallery').then(response => response.json());
+
+    galleryRequest
     .then(result => {
         let galleryItems = result.data || [];
         
@@ -179,7 +215,7 @@ function loadGalleryContent() {
         `).join('');
     })
     .catch(error => {
-        console.log('Database fetch failed, trying localStorage:', error);
+        console.log('Dynamic content unavailable, using local data:', error);
         // Fallback to localStorage
         const galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
         
@@ -533,8 +569,9 @@ function switchView(viewName) {
         viewElement.classList.add('active');
     }
     
-    if (event && event.target) {
-        event.target.classList.add('active');
+    const activeEvent = typeof event !== 'undefined' ? event : null;
+    if (activeEvent && activeEvent.target) {
+        activeEvent.target.classList.add('active');
     }
     
     loadViewData(viewName);
@@ -793,20 +830,44 @@ function saveEvent() {
 }
 
 function viewEventDetails(eventName) {
-    alert('Event details for: ' + eventName);
+    const event = allEvents.find(item => item.name === eventName || item.title === eventName);
+    const details = event
+        ? `${event.name || event.title}\nDate: ${event.date || event.event_date || 'Not set'}\nLocation: ${event.location || 'Not set'}\n${event.description || ''}`
+        : 'Event details for: ' + eventName;
+    alert(details);
 }
 
 function editEvent(eventName) {
-    alert('Edit event: ' + eventName);
+    const event = allEvents.find(item => item.name === eventName || item.title === eventName);
+    if (!event) {
+        showNotification('Use Create New Event to add updated details.', 'info');
+        return;
+    }
+
+    document.getElementById('newEventName').value = event.name || event.title || '';
+    document.getElementById('newEventDate').value = event.date || '';
+    document.getElementById('newEventTime').value = event.time || '';
+    document.getElementById('newEventLocation').value = event.location || '';
+    document.getElementById('newEventDescription').value = event.description || '';
+    showCreateEventModal();
 }
 
 // ANNOUNCEMENTS
 function loadAnnouncements() {
-    const announcements = [
+    const savedAnnouncements = readList('adminAnnouncements').map(ann => ({
+        title: ann.title,
+        text: ann.content,
+        time: ann.created_at ? new Date(ann.created_at).toLocaleDateString() : 'Recently',
+        icon: 'bell'
+    }));
+
+    const defaultAnnouncements = [
         { title: 'Jumu\'ah Reminder', text: 'Join us Friday at 1:30 PM in the main hall', time: 'Today', icon: 'bell' },
         { title: 'Islamic Seminar', text: 'Register for upcoming seminar on Islamic Ethics', time: 'Yesterday', icon: 'graduation-cap' },
         { title: 'Welfare Support Available', text: 'Assistance programs are now open for applications', time: '2 days ago', icon: 'hands-helping' }
     ];
+
+    const announcements = savedAnnouncements.length > 0 ? savedAnnouncements : defaultAnnouncements;
     
     const container = document.getElementById('announcementsContent');
     if (container) {
@@ -1017,7 +1078,27 @@ function submitDonation() {
 
 // ADMIN FUNCTIONS
 function loadMemberDatabase() {
-    // Load and display members
+    const tbody = document.getElementById('membersList');
+    if (!tbody) return;
+
+    if (allMembers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No registered members yet</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = allMembers.map(member => `
+        <tr>
+            <td>${member.studentId || member.username || 'N/A'}</td>
+            <td>${member.fullName || member.name || member.username || 'N/A'}</td>
+            <td>${member.email || 'N/A'}</td>
+            <td>${member.phone || 'N/A'}</td>
+            <td><span class="badge bg-success">${member.status || 'Active'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="viewMemberDetails('${member.studentId || member.username}')">View</button>
+                <button class="btn btn-sm btn-warning" onclick="editMember('${member.studentId || member.username}')">Edit</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function searchMembers() {
@@ -1032,15 +1113,32 @@ function searchMembers() {
 }
 
 function viewMemberDetails(studentId) {
-    alert('Viewing member details for: ' + studentId);
+    const member = allMembers.find(item => item.studentId === studentId || item.username === studentId);
+    if (!member) {
+        showNotification('Member record not found.', 'warning');
+        return;
+    }
+    alert(`Member: ${member.fullName || member.username}\nEmail: ${member.email || 'N/A'}\nRole: ${member.role || 'student'}\nPhone: ${member.phone || 'N/A'}`);
 }
 
 function editMember(studentId) {
-    alert('Editing member: ' + studentId);
+    const member = allMembers.find(item => item.studentId === studentId || item.username === studentId);
+    if (!member) {
+        showNotification('Member record not found.', 'warning');
+        return;
+    }
+    currentUser = member;
+    loadProfileData();
+    switchView('profile');
+    showNotification('Member loaded in the profile view.', 'info');
 }
 
 function loadAdminEvents() {
-    // Load admin events view
+    const adminEvents = readList('adminEvents');
+    allEvents = [...allEvents, ...adminEvents].filter((event, index, list) =>
+        index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === (event.id || event.eventId || event.title || event.name))
+    );
+    localStorage.setItem('allEvents', JSON.stringify(allEvents));
 }
 
 function loadAdminWelfare() {
@@ -1523,10 +1621,13 @@ function initializeHadiths() {
     });
 }
 
-// Load all hadiths from PHP
+// Load all hadiths
 function loadAllHadiths() {
-    return fetch('commuj.php?action=getAll')
-        .then(response => response.json())
+    const hadithRequest = isStaticHosting
+        ? Promise.resolve(getStaticApiData('getAllHadiths'))
+        : fetch('commuj.php?action=getAll').then(response => response.json());
+
+    return hadithRequest
         .then(data => {
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 allHadiths = data.data;
@@ -1537,7 +1638,7 @@ function loadAllHadiths() {
             throw new Error('Invalid hadith list returned');
         })
         .catch(error => {
-            console.error('Error loading hadiths:', error);
+            console.log('Hadith API unavailable, using local hadiths:', error);
             loadLocalHadiths();
             hadithsLoaded = true;
             return allHadiths;
@@ -1546,8 +1647,11 @@ function loadAllHadiths() {
 
 // Load today''s hadith
 function loadDailyHadith() {
-    return fetch('commuj.php?action=getDaily')
-        .then(response => response.json())
+    const dailyRequest = isStaticHosting
+        ? Promise.resolve(getStaticApiData('getDailyHadith'))
+        : fetch('commuj.php?action=getDaily').then(response => response.json());
+
+    return dailyRequest
         .then(data => {
             if (data.success && data.data) {
                 currentHadithIndex = data.position - 1;
@@ -1561,7 +1665,7 @@ function loadDailyHadith() {
             throw new Error('Invalid daily hadith returned');
         })
         .catch(error => {
-            console.error('Error loading daily hadith:', error);
+            console.log('Daily hadith API unavailable, using local hadith:', error);
             if (allHadiths.length > 0) {
                 const today = new Date().getDate();
                 currentHadithIndex = today % allHadiths.length;

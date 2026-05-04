@@ -158,7 +158,10 @@ function switchAdminView(viewName) {
         viewElement.classList.add('active');
         
         // Add active class to nav link
-        event.target.closest('a').classList.add('active');
+        const activeEvent = typeof event !== 'undefined' ? event : null;
+        if (activeEvent && activeEvent.target) {
+            activeEvent.target.closest('a')?.classList.add('active');
+        }
         
         // Update page title
         const titles = {
