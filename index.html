@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMMUJ - Medical Muslim Students Registration System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="commuj.css">
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landingPage" class="landing-page active">
+        <div id="home"></div>
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#" onclick="showLanding()"><i class="fas fa-mosque"></i> COMMUJ</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#home" onclick="showLanding(); scrollToSection('home')">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#about" onclick="showLanding(); scrollToSection('about')">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#mission" onclick="showLanding(); scrollToSection('mission')">What We Do</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#leadership" onclick="showLanding(); scrollToSection('leadership')">Our Leadership</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#gallery" onclick="showLanding(); scrollToSection('gallery')">Gallery</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact" onclick="showLanding(); scrollToSection('contact')">Contact Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" onclick="activateAuthTab('login')">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" onclick="activateAuthTab('register')">Register</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <div class="landing-hero">
+            <div class="hero-content">
+                <h1 class="hero-title"><i class="fas fa-mosque"></i> COMMUJ</h1>
+                <p class="hero-subtitle">College of Medicine Muslim Jamaat</p>
+                <p class="hero-description">Building a compassionate community of Muslim healthcare professionals</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-lg me-3" onclick="showLoginPage()">Join Us Today</button>
+                    <a href="https://www.commuj.org" target="_blank" class="btn btn-outline-light btn-lg" title="Visit COMMUJ official website">
+                        <i class="fas fa-globe"></i> Visit COMMUJ Official Website
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Section -->
+        <section id="about" class="landing-section">
+            <div class="container">
+                <h2 class="section-title">About Us</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="about-content">
+                            <h4>Who We Are</h4>
+                            <p>COMMUJ (College of Medicine Muslim Jamaat) is a community organization dedicated to serving Muslim students and staff in the College of Medicine. We are committed to fostering spiritual growth, academic excellence, and community support.</p>
+                            <p>Our association brings together students from various medical disciplines including Medicine, Pharmacy, Nursing, and Public Health, creating a united platform for Islamic practice and mutual support.</p>
+                            <ul class="about-features">
+                                <li><i class="fas fa-check-circle"></i> Supporting faith-based student life</li>
+                                <li><i class="fas fa-check-circle"></i> Organizing religious events and activities</li>
+                                <li><i class="fas fa-check-circle"></i> Providing welfare and counseling services</li>
+                                <li><i class="fas fa-check-circle"></i> Bridging academic excellence with Islamic values</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="about-image">
+                            <i class="fas fa-users fa-10x" style="color: var(--primary-color); opacity: 0.2;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission & Vision Section -->
+        <section id="mission" class="landing-section bg-light">
+            <div class="container">
+                <h2 class="section-title">What We Do</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-prayer"></i>
+                            <h5>Spiritual Support</h5>
+                            <p>Regular prayer gatherings, Jumu'ah services, and Islamic lectures to strengthen faith and spiritual growth among members.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h5>Events & Activities</h5>
+                            <p>Organize seminars, workshops, social gatherings, and educational events that promote Islamic knowledge and community bonding.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-hands-helping"></i>
+                            <h5>Welfare Support</h5>
+                            <p>Provide financial assistance, counseling, and support services to members facing hardship or personal challenges.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h5>Education</h5>
+                            <p>Offer resources for Islamic learning, including Quran study circles, Islamic history seminars, and knowledge-sharing sessions.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-heart"></i>
+                            <h5>Community Service</h5>
+                            <p>Engage in volunteering and community outreach programs to benefit society and reflect Islamic values of compassion.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="mission-card">
+                            <i class="fas fa-user-tie"></i>
+                            <h5>Leadership</h5>
+                            <p>Develop leadership skills and prepare members for roles in guiding and inspiring the Muslim student community.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leadership Section -->
+        <section id="leadership" class="landing-section">
+            <div class="container">
+                <h2 class="section-title">Our Leadership</h2>
+                <div id="leadershipContainer" class="row">
+                    <!-- Leadership cards will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="landing-section bg-light">
+            <div class="container">
+                <h2 class="section-title">Gallery</h2>
+                <div id="galleryContainer" class="row">
+                    <!-- Gallery items will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="landing-section">
+            <div class="container">
+                <h2 class="section-title">Contact Us</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="contact-info">
+                            <h5>Get in Touch</h5>
+                            <div class="contact-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <h6>Location</h6>
+                                    <p>College of Medicine, Main Campus</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <h6>Phone</h6>
+                                    <p>+1 (555) 123-4567</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <h6>Email</h6>
+                                    <p>info@commuj.org</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <h6>Office Hours</h6>
+                                    <p>Monday - Friday: 10 AM - 6 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <form id="contactForm" class="contact-form">
+                            <div class="mb-3">
+                                <label class="form-label">Your Name</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Your Email</label>
+                                <input type="email" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>COMMUJ</h6>
+                        <p>College of Medicine Muslim Jamaat - Serving our community with compassion and integrity.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Quick Links</h6>
+                        <ul>
+                            <li><a href="#about" onclick="scrollToSection('about')">About Us</a></li>
+                            <li><a href="#mission" onclick="scrollToSection('mission')">What We Do</a></li>
+                            <li><a href="#leadership" onclick="scrollToSection('leadership')">Leadership</a></li>
+                            <li><a href="#contact" onclick="scrollToSection('contact')">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Connect With Us</h6>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <p>&copy; 2024 COMMUJ. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <button class="btn btn-link" onclick="showLanding()" style="text-decoration: none;">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </button>
+                    <div class="logo-icon">
+                        <i class="fas fa-mosque"></i>
+                    </div>
+                    <h1 class="brand-title">COMMUJ</h1>
+                    <p class="text-muted">College of Medicine Muslim Jamaat</p>
+                </div>
+                    <div class="alert alert-info text-start">
+                        <strong>Public info available:</strong> Explore About Us, What We Do, Leadership, Gallery and Contact details without registering. <a href="#" onclick="showLanding()">View public pages</a> or <a href="https://www.commuj.org" target="_blank">visit our official website</a>.
+                        <div class="mt-2">
+                            <a href="https://www.commuj.org" target="_blank" class="btn btn-sm btn-outline-primary">Visit COMMUJ</a>
+                        </div>
+                    </div>
+                <div class="auth-tabs">
+                    <ul class="nav nav-tabs mb-4" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="loginTabBtn" data-bs-toggle="tab" data-bs-target="#loginTab" type="button">Login</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="registerTabBtn" data-bs-toggle="tab" data-bs-target="#registerTab" type="button">Register</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div id="loginTab" class="tab-pane fade show active">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label class="form-label">Email or Student ID</label>
+                                <input type="text" class="form-control" id="loginUsername" placeholder="Enter email or student ID" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Login As</label>
+                                <select class="form-select" id="userRole" required>
+                                    <option value="">Select Role</option>
+                                    <option value="student">Student Member</option>
+                                    <option value="executive">Executive/Admin</option>
+                                    <option value="imam">Imam/Leader</option>
+                                    <option value="finance">Finance Officer</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-2">Login</button>
+                            <button type="button" class="btn btn-link w-100" onclick="showForgotPassword()">Forgot Password?</button>
+                        </form>
+                    </div>
+
+                    <!-- Register Tab -->
+                    <div id="registerTab" class="tab-pane fade">
+                        <form id="registrationForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" placeholder="Enter full name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Student ID</label>
+                                    <input type="text" class="form-control" id="studentId" placeholder="Student ID" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Diploma or Degree</label>
+                                <select class="form-select" id="degreeType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="degree">Degree</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="regRole" required>
+                                    <option value="">Select Role</option>
+                                    <option value="student">Student Member</option>
+                                    <option value="executive">Executive/Admin</option>
+                                    <option value="imam">Imam/Leader</option>
+                                    <option value="finance">Finance Officer</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Course</label>
+                                <select class="form-select" id="course" required>
+                                    <option value="">Select Course</option>
+                                    <optgroup label="Degree Programs">
+                                        <option value="medicine">Medicine (MBBS)</option>
+                                        <option value="pharmacy">Pharmacy</option>
+                                        <option value="nursing">Nursing</option>
+                                        <option value="publicHealth">Public Health</option>
+                                        <option value="medicalLab">Medical Laboratory Sciences</option>
+                                    </optgroup>
+                                    <optgroup label="Diploma Programs">
+                                        <option value="diplomaNursing">Diploma in Nursing</option>
+                                        <option value="diplomaMidwifery">Diploma in Midwifery</option>
+                                        <option value="diplomaPharmacy">Diploma in Pharmacy Technology</option>
+                                        <option value="diplomaCommunityHealth">Diploma in Community Health</option>
+                                        <option value="diplomaMedicalLab">Diploma in Medical Laboratory Technology</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Year of Study</label>
+                                    <select class="form-select" id="yearOfStudy" required>
+                                        <option value="">Select Level</option>
+                                        <optgroup label="Pre-Medical Stages">
+                                            <option value="preMed1">Pre-Med 1</option>
+                                            <option value="preMed2">Pre-Med 2</option>
+                                        </optgroup>
+                                        <optgroup label="Pre-Professional Stages">
+                                            <option value="prePharmacy">Pre-Pharmacy</option>
+                                            <option value="preNursing">Pre-Nursing</option>
+                                        </optgroup>
+                                        <optgroup label="Main Program Years">
+                                            <option value="1">Year 1</option>
+                                            <option value="2">Year 2</option>
+                                            <option value="3">Year 3</option>
+                                            <option value="4">Year 4</option>
+                                            <option value="5">Year 5</option>
+                                            <option value="6">Year 6</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" placeholder="Phone number" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" placeholder="Email address" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nationality</label>
+                                <input type="text" class="form-control" id="nationality" placeholder="Nationality" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Home Address</label>
+                                <textarea class="form-control" id="homeAddress" placeholder="Enter home address" rows="2" required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="regPassword" placeholder="Enter password" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Emergency Contact</label>
+                                <input type="text" class="form-control" id="emergencyContact" placeholder="Emergency contact name" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Local Guardian</label>
+                                <input type="text" class="form-control" id="localGuardian" placeholder="Local guardian name" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Passport Photo</label>
+                                <input type="file" class="form-control" id="passportPhoto" accept="image/*" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="forgotPasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label">Enter your email address</label>
+                            <input type="email" class="form-control" id="forgotEmail" required>
+                        </div>
+                        <small class="text-muted">A password reset link will be sent to your email</small>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="sendResetLink()">Send Reset Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leadership Details Modal -->
+    <div class="modal fade" id="leaderDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="leaderModalTitle">Leadership Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="leader-photo-modal">
+                                <i class="fas fa-user-circle fa-6x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4 id="leaderName">Name</h4>
+                            <h5 class="text-primary" id="leaderPosition">Position</h5>
+                            <p class="text-muted" id="leaderBio">Bio</p>
+                            <hr>
+                            <div class="leader-details">
+                                <p><strong>Description:</strong> <span id="leaderDescription"></span></p>
+                                <p><strong>Email:</strong> <span id="leaderEmail"></span></p>
+                                <p><strong>Phone:</strong> <span id="leaderPhone"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Image Modal -->
+    <div class="modal fade" id="galleryImageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="galleryModalTitle">Gallery Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="galleryImage" src="" alt="Gallery Image" class="img-fluid rounded mb-3" style="max-height: 400px;">
+                    <h4 id="galleryTitle">Title</h4>
+                    <p id="galleryDescription">Description</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardPage" class="dashboard-container">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#"><i class="fas fa-mosque"></i> COMMUJ</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">
+                                Welcome, <span id="userNameDisplay">User</span>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <button class="btn btn-outline-light" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar Navigation -->
+                <div class="col-md-3 col-lg-2 sidebar-menu">
+                    <div class="menu-section">
+                        <h6 class="menu-title">NAVIGATION</h6>
+                        <nav class="nav flex-column">
+                            <a href="#" class="nav-link active" onclick="switchView('dashboard')">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('profile')">
+                                <i class="fas fa-user-circle"></i> Profile
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="menu-section" id="studentMenu">
+                        <h6 class="menu-title">STUDENT</h6>
+                        <nav class="nav flex-column">
+                            <a href="#" class="nav-link" onclick="switchView('membershipStatus')">
+                                <i class="fas fa-id-card"></i> Membership Status
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('prayer')">
+                                <i class="fas fa-mosque"></i> Prayer Times
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('events')">
+                                <i class="fas fa-calendar"></i> Events
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('announcements')">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('resources')">
+                                <i class="fas fa-book"></i> Resources
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="menu-section" id="welfareMenu">
+                        <h6 class="menu-title">WELFARE & FINANCE</h6>
+                        <nav class="nav flex-column">
+                            <a href="#" class="nav-link" onclick="switchView('welfare')">
+                                <i class="fas fa-hands-helping"></i> Welfare Requests
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('dues')">
+                                <i class="fas fa-money-bill"></i> Dues & Payments
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('donations')">
+                                <i class="fas fa-donate"></i> Donations
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="menu-section" id="adminMenu" style="display:none;">
+                        <h6 class="menu-title">ADMIN PANEL</h6>
+                        <nav class="nav flex-column">
+                            <a href="admin.html" class="nav-link" target="_blank">
+                                <i class="fas fa-sliders-h"></i> Content Manager
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('memberDatabase')">
+                                <i class="fas fa-database"></i> Members
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('adminEvents')">
+                                <i class="fas fa-calendar-plus"></i> Manage Events
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('adminWelfare')">
+                                <i class="fas fa-cogs"></i> Welfare Management
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('leadership')">
+                                <i class="fas fa-crown"></i> Leadership
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('reports')">
+                                <i class="fas fa-chart-bar"></i> Reports
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('adminGallery')">
+                                <i class="fas fa-images"></i> Gallery Management
+                            </a>
+                            <a href="#" class="nav-link" onclick="switchView('adminContact')">
+                                <i class="fas fa-phone"></i> Contact Management
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-9 col-lg-10 main-content">
+                    <!-- Dashboard View -->
+                    <div id="dashboardView" class="view-container active">
+                        <!-- Animated Welcome Banner -->
+                        <div class="welcome-banner">
+                            <h1 class="welcome-text">
+                                <i class="fas fa-star"></i> Welcome to COMMUJ <i class="fas fa-star"></i>
+                            </h1>
+                            <p class="welcome-subtext">College of Medicine Muslim Jamaat Association</p>
+                        </div>
+
+                        <!-- Daily Hadith Reminder Section -->
+                        <div class="hadith-section">
+                            <div class="hadith-header">
+                                <i class="fas fa-book hadith-icon"></i>
+                                <h3 class="hadith-title">Daily Hadith Reminder</h3>
+                            </div>
+                            <div class="hadith-content" id="hadithText">
+                                Loading hadith...
+                            </div>
+                            <div class="hadith-reference" id="hadithReference"></div>
+                            <div class="hadith-translation" id="hadithTranslation"></div>
+                            <div class="hadith-nav">
+                                <button type="button" class="hadith-btn" onclick="previousHadith()">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                                <span class="hadith-counter">
+                                    <span id="hadithCounter">1</span> / <span id="hadithTotal">1</span>
+                                </span>
+                                <button type="button" class="hadith-btn" onclick="nextHadith()">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="page-header">
+                            <h2>Dashboard</h2>
+                            <p class="text-muted">Welcome back to COMMUJ, <span id="userNameDisplay">User</span></p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12 mb-2">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="toggleSection('dashboardStats')">
+                                    <i class="fas fa-chevron-down"></i> Show/Hide Dashboard Stats
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4" id="dashboardStats">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon active-members">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h6 class="card-title">Membership Status</h6>
+                                        <p class="stat-value" id="membershipStatusValue">Active</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card stats-card" onclick="switchView('events')" style="cursor: pointer;">
+                                    <div class="card-body">
+                                        <div class="stat-icon upcoming-events">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <h6 class="card-title">Upcoming Events</h6>
+                                        <p class="stat-value" id="upcomingEventsCount">5</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon dues-payment">
+                                            <i class="fas fa-money-bill"></i>
+                                        </div>
+                                        <h6 class="card-title">Dues Status</h6>
+                                        <p class="stat-value" id="duesStatusValue">Paid</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card stats-card" onclick="switchView('announcements')" style="cursor: pointer;">
+                                    <div class="card-body">
+                                        <div class="stat-icon announcements">
+                                            <i class="fas fa-bell"></i>
+                                        </div>
+                                        <h6 class="card-title">Announcements</h6>
+                                        <p class="stat-value" id="announcementCount">3</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Today's Prayer Times</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="prayerTimesList">
+                                            <div class="prayer-time">
+                                                <span class="prayer-name">Fajr</span>
+                                                <span class="prayer-time-value">5:30 AM</span>
+                                            </div>
+                                            <div class="prayer-time">
+                                                <span class="prayer-name">Dhuhr</span>
+                                                <span class="prayer-time-value">1:15 PM</span>
+                                            </div>
+                                            <div class="prayer-time">
+                                                <span class="prayer-name">Asr</span>
+                                                <span class="prayer-time-value">4:45 PM</span>
+                                            </div>
+                                            <div class="prayer-time">
+                                                <span class="prayer-name">Maghrib</span>
+                                                <span class="prayer-time-value">7:20 PM</span>
+                                            </div>
+                                            <div class="prayer-time">
+                                                <span class="prayer-name">Isha</span>
+                                                <span class="prayer-time-value">9:00 PM</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Recent Announcements</h5>
+                                    </div>
+                                    <div class="card-body" id="announcementsList">
+                                        <div class="announcement-item">
+                                            <small class="text-muted">2024-04-28</small>
+                                            <p class="mb-1"><strong>Jumu'ah Reminder</strong></p>
+                                            <p class="text-muted small">Join us for Jumu'ah prayers this Friday at 1:30 PM</p>
+                                        </div>
+                                        <hr>
+                                        <div class="announcement-item">
+                                            <small class="text-muted">2024-04-26</small>
+                                            <p class="mb-1"><strong>Event: Islamic Seminar</strong></p>
+                                            <p class="text-muted small">Seminar on "Islamic Ethics in Modern Society" - April 30</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile View -->
+                    <div id="profileView" class="view-container">
+                        <div class="page-header">
+                            <h2>My Profile</h2>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3 text-center">
+                                <div class="card profile-card">
+                                    <div class="card-body">
+                                        <div class="profile-photo">
+                                            <i class="fas fa-user-circle"></i>
+                                        </div>
+                                        <h5 class="mt-3" id="profileName">Student Name</h5>
+                                        <p class="text-muted" id="profileStudentId">Student ID</p>
+                                        <button class="btn btn-sm btn-primary" onclick="editProfile()">Edit Profile</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-9">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Personal Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <strong>Full Name:</strong>
+                                                <p id="profileFullName">-</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Student ID:</strong>
+                                                <p id="profileStudentIdDetail">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <strong>Degree Type:</strong>
+                                                <p id="profileUniversity">-</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Course:</strong>
+                                                <p id="profileDepartment">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <strong>Year of Study:</strong>
+                                                <p id="profileYear">-</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Gender:</strong>
+                                                <p id="profileGender">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <strong>Email:</strong>
+                                                <p id="profileEmail">-</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Phone:</strong>
+                                                <p id="profilePhone">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <strong>Home Address:</strong>
+                                                <p id="profileAddress">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <strong>Nationality:</strong>
+                                                <p id="profileNationality">-</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Emergency Contact:</strong>
+                                                <p id="profileEmergencyContact">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Local Guardian:</strong>
+                                                <p id="profileLocalGuardian">-</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Membership Status View -->
+                    <div id="membershipStatusView" class="view-container">
+                        <div class="page-header">
+                            <h2>Membership Status</h2>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <h5>Your Membership Details</h5>
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Status:</strong></td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Member Since:</strong></td>
+                                                <td>January 15, 2024</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Membership Expires:</strong></td>
+                                                <td>January 14, 2025</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Membership Fee:</strong></td>
+                                                <td>Paid</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Membership Benefits</h5>
+                                        <ul class="benefits-list">
+                                            <li><i class="fas fa-check"></i> Access to all Islamic events</li>
+                                            <li><i class="fas fa-check"></i> Prayer time notifications</li>
+                                            <li><i class="fas fa-check"></i> Welfare support eligibility</li>
+                                            <li><i class="fas fa-check"></i> Educational resources</li>
+                                            <li><i class="fas fa-check"></i> Community involvement</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="renewMembership()">Renew Membership</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prayer Times View -->
+                    <div id="prayerView" class="view-container">
+                        <div class="page-header">
+                            <h2>Prayer Times & Religious Activities</h2>
+                        </div>
+
+                        <ul class="nav nav-tabs mb-4" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#prayerTimesTab">Prayer Times</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#jummaTab">Jumu'ah Reminders</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ramadanTab">Ramadan Schedule</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lecturesTab">Islamic Lectures</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Prayer Times Tab -->
+                            <div id="prayerTimesTab" class="tab-pane fade show active">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Daily Prayer Timetable</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="prayer-schedule">
+                                                    <div class="prayer-item">
+                                                        <span class="prayer-label">Fajr (Dawn)</span>
+                                                        <span class="prayer-time">5:30 AM</span>
+                                                        <span class="iqamah">5:45 AM</span>
+                                                    </div>
+                                                    <div class="prayer-item">
+                                                        <span class="prayer-label">Dhuhr (Noon)</span>
+                                                        <span class="prayer-time">1:15 PM</span>
+                                                        <span class="iqamah">1:30 PM</span>
+                                                    </div>
+                                                    <div class="prayer-item">
+                                                        <span class="prayer-label">Asr (Afternoon)</span>
+                                                        <span class="prayer-time">4:45 PM</span>
+                                                        <span class="iqamah">5:00 PM</span>
+                                                    </div>
+                                                    <div class="prayer-item">
+                                                        <span class="prayer-label">Maghrib (Sunset)</span>
+                                                        <span class="prayer-time">7:20 PM</span>
+                                                        <span class="iqamah">7:35 PM</span>
+                                                    </div>
+                                                    <div class="prayer-item">
+                                                        <span class="prayer-label">Isha (Night)</span>
+                                                        <span class="prayer-time">9:00 PM</span>
+                                                        <span class="iqamah">9:15 PM</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Mosque Attendance</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="attendanceChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Jumu'ah Tab -->
+                            <div id="jummaTab" class="tab-pane fade">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Jumu'ah Prayer Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-bell"></i> Next Jumu'ah Prayer: Friday, April 26, 2024 at 1:30 PM
+                                        </div>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Time</th>
+                                                    <th>Khutbah Topic</th>
+                                                    <th>Speaker</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>April 26, 2024</td>
+                                                    <td>1:30 PM</td>
+                                                    <td>Islamic Ethics in Business</td>
+                                                    <td>Imam Ahmed</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>May 3, 2024</td>
+                                                    <td>1:30 PM</td>
+                                                    <td>Importance of Knowledge</td>
+                                                    <td>Imam Hassan</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <button class="btn btn-primary"><i class="fas fa-bell"></i> Subscribe to Reminders</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ramadan Tab -->
+                            <div id="ramadanTab" class="tab-pane fade">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Ramadan 1445 H (March 2024)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Event</th>
+                                                    <th>Date</th>
+                                                    <th>Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Ramadan Begins</td>
+                                                    <td>March 12, 2024</td>
+                                                    <td>-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Iftar (Breaking of Fast)</td>
+                                                    <td>Daily</td>
+                                                    <td>6:45 PM</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Suhoor (Pre-dawn meal)</td>
+                                                    <td>Daily</td>
+                                                    <td>5:15 AM</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Taraweeh Prayer</td>
+                                                    <td>Nightly</td>
+                                                    <td>9:30 PM</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Eid ul-Fitr Celebration</td>
+                                                    <td>April 10, 2024</td>
+                                                    <td>8:30 AM</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="alert alert-info mt-3">
+                                            <strong>Community Iftar:</strong> Join us for communal iftar every evening in the main hall
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lectures Tab -->
+                            <div id="lecturesTab" class="tab-pane fade">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Islamic Lectures Series</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="lecture-item">
+                                                    <strong>Quran Study Circle</strong>
+                                                    <small class="d-block text-muted">Every Tuesday, 6:00 PM - 7:30 PM</small>
+                                                    <p>Join our weekly Quran recitation and tafsir sessions</p>
+                                                </div>
+                                                <hr>
+                                                <div class="lecture-item">
+                                                    <strong>Da'wah & Islamic Knowledge</strong>
+                                                    <small class="d-block text-muted">Every Thursday, 7:00 PM - 8:30 PM</small>
+                                                    <p>Learn about Islamic principles and contemporary issues</p>
+                                                </div>
+                                                <hr>
+                                                <div class="lecture-item">
+                                                    <strong>Islamic History Series</strong>
+                                                    <small class="d-block text-muted">Every Saturday, 3:00 PM - 4:30 PM</small>
+                                                    <p>Explore the rich history of Islamic civilization</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Upcoming Lectures</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="lecture-item">
+                                                    <strong>Islamic Ethics in Modern Society</strong>
+                                                    <small class="d-block text-muted">April 28, 2024</small>
+                                                    <p>Speaker: Dr. Mohamed Ali</p>
+                                                    <button class="btn btn-sm btn-primary">Register</button>
+                                                </div>
+                                                <hr>
+                                                <div class="lecture-item">
+                                                    <strong>Women in Islam</strong>
+                                                    <small class="d-block text-muted">May 5, 2024</small>
+                                                    <p>Speaker: Sister Fatima Khan</p>
+                                                    <button class="btn btn-sm btn-primary">Register</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events View -->
+                    <div id="eventsView" class="view-container">
+                        <div class="page-header">
+                            <h2>Events & Activities</h2>
+                            <button class="btn btn-primary" onclick="showEventModal()">Register for Event</button>
+                        </div>
+
+                        <div class="mb-3">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="toggleSection('eventsList')">
+                                <i class="fas fa-chevron-down"></i> Show/Hide Available Events
+                            </button>
+                        </div>
+
+                        <div class="row" id="eventsList" style="display:none;">
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card event-card">
+                                    <div class="card-header event-header">
+                                        <h6 class="mb-0">Islamic Seminar</h6>
+                                        <small>April 28, 2024</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><i class="fas fa-clock"></i> 2:00 PM - 4:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Main Hall</p>
+                                        <p class="text-muted">Topic: Islamic Ethics in Modern Society</p>
+                                        <button class="btn btn-sm btn-primary" onclick="registerEvent('islamic-seminar')">Register</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card event-card">
+                                    <div class="card-header event-header">
+                                        <h6 class="mb-0">Jumu'ah Gathering</h6>
+                                        <small>April 26, 2024</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><i class="fas fa-clock"></i> 1:30 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Main Prayer Hall</p>
+                                        <p class="text-muted">Weekly congregational prayer</p>
+                                        <button class="btn btn-sm btn-primary" onclick="registerEvent('jummaah')">Register</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card event-card">
+                                    <div class="card-header event-header">
+                                        <h6 class="mb-0">Quran Recitation Workshop</h6>
+                                        <small>May 2, 2024</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><i class="fas fa-clock"></i> 3:00 PM - 5:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Study Room B</p>
+                                        <p class="text-muted">Learn proper Quran recitation</p>
+                                        <button class="btn btn-sm btn-primary" onclick="registerEvent('quran-workshop')">Register</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Your Registered Events</h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleSection('registeredEventsDetails')">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="card-body" id="registeredEventsDetails" style="display:none;">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="registeredEventsList">
+                                        <tr>
+                                            <td>Jumu'ah Gathering</td>
+                                            <td>April 26, 2024</td>
+                                            <td><span class="badge bg-success">Registered</span></td>
+                                            <td><button class="btn btn-sm btn-danger" onclick="cancelEventRegistration('jummaah')">Cancel</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Announcements View -->
+                    <div id="announcementsView" class="view-container">
+                        <div class="page-header">
+                            <h2>Announcements</h2>
+                        </div>
+
+                        <div id="announcementsContainer">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h5>Jumu'ah Reminder</h5>
+                                        <small class="text-muted">April 28, 2024</small>
+                                    </div>
+                                    <p>Join us for Jumu'ah prayers this Friday at 1:30 PM in the main prayer hall. Please arrive 15 minutes early.</p>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h5>Upcoming Islamic Seminar</h5>
+                                        <small class="text-muted">April 27, 2024</small>
+                                    </div>
+                                    <p>We are excited to announce our upcoming seminar on "Islamic Ethics in Modern Society". Free registration available. Limited seats!</p>
+                                    <button class="btn btn-sm btn-primary">View Details</button>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h5>Welfare Support Available</h5>
+                                        <small class="text-muted">April 25, 2024</small>
+                                    </div>
+                                    <p>Our welfare committee is available to assist members in need. If you require any form of support, please submit a request through the welfare section.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resources View -->
+                    <div id="resourcesView" class="view-container">
+                        <div class="page-header">
+                            <h2>Educational Resources</h2>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-header">
+                                        <i class="fas fa-quran"></i> Quranic Studies
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="resource-list">
+                                            <li><a href="#">Surah Yaseen - Tafsir</a></li>
+                                            <li><a href="#">Memorization Tips</a></li>
+                                            <li><a href="#">Arabic Language Basics</a></li>
+                                            <li><a href="#">Hadith Collections</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-header">
+                                        <i class="fas fa-book"></i> Islamic Knowledge
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="resource-list">
+                                            <li><a href="#">Fiqh (Islamic Jurisprudence)</a></li>
+                                            <li><a href="#">Aqeedah (Islamic Beliefs)</a></li>
+                                            <li><a href="#">Islamic History</a></li>
+                                            <li><a href="#">Islamic Ethics</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-header">
+                                        <i class="fas fa-video"></i> Video Lectures
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="resource-list">
+                                            <li><a href="#">Islamic Scholars Lectures</a></li>
+                                            <li><a href="#">Student Life & Islam</a></li>
+                                            <li><a href="#">Da'wah Training</a></li>
+                                            <li><a href="#">Islamic Psychology</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-header">
+                                        <i class="fas fa-download"></i> Downloads
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="resource-list">
+                                            <li><a href="#">Prayer Times App</a></li>
+                                            <li><a href="#">Quran Reader</a></li>
+                                            <li><a href="#">Islamic Calendar</a></li>
+                                            <li><a href="#">Study Guides</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Welfare View -->
+                    <div id="welfareView" class="view-container">
+                        <div class="page-header">
+                            <h2>Welfare Support System</h2>
+                            <button class="btn btn-primary" onclick="showWelfareModal()">Submit Welfare Request</button>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-hands-helping"></i>
+                                        </div>
+                                        <h6>Total Requests</h6>
+                                        <p class="stat-value">3</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <h6>Approved</h6>
+                                        <p class="stat-value">2</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-hourglass-half"></i>
+                                        </div>
+                                        <h6>Pending</h6>
+                                        <p class="stat-value">1</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-times"></i>
+                                        </div>
+                                        <h6>Rejected</h6>
+                                        <p class="stat-value">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Available Welfare Categories</h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleSection('welfareCategoriesDetails')">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="card-body" id="welfareCategoriesDetails">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-money-bill"></i> Financial Assistance</h6>
+                                            <p class="text-muted">Emergency financial support for deserving members</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-hospital"></i> Medical Support</h6>
+                                            <p class="text-muted">Assistance with medical bills and healthcare</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-home"></i> Accommodation Support</h6>
+                                            <p class="text-muted">Help with housing and accommodation needs</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-utensils"></i> Food Support</h6>
+                                            <p class="text-muted">Food assistance, especially during Ramadan</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-heart"></i> Counseling</h6>
+                                            <p class="text-muted">Emotional and academic counseling support</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="welfare-category">
+                                            <h6><i class="fas fa-ambulance"></i> Emergency Support</h6>
+                                            <p class="text-muted">Urgent assistance in emergency situations</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Your Welfare Requests</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Request Type</th>
+                                            <th>Date Submitted</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Medical Support</td>
+                                            <td>April 20, 2024</td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>$500</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Financial Assistance</td>
+                                            <td>April 15, 2024</td>
+                                            <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                            <td>$300</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dues & Payments View -->
+                    <div id="duesView" class="view-container">
+                        <div class="page-header">
+                            <h2>Dues & Payment Management</h2>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Payment Status</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="payment-status-item">
+                                            <p><strong>Membership Dues</strong></p>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-success" style="width: 100%">
+                                                    Paid
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Amount: $50 | Paid: April 1, 2024</small>
+                                        </div>
+                                        <hr>
+                                        <div class="payment-status-item">
+                                            <p><strong>Activity Fee</strong></p>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-warning" style="width: 50%">
+                                                    Partially Paid
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Amount: $30 | Paid: $15 | Due: $15</small>
+                                        </div>
+                                        <hr>
+                                        <div class="payment-status-item">
+                                            <p><strong>Special Events</strong></p>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar" style="width: 0%">
+                                                    Not Paid
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Amount: $25 | Due: April 30, 2024</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Payment Summary</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <td><strong>Total Due:</strong></td>
+                                                <td>$40</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Total Paid:</strong></td>
+                                                <td>$65</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Next Due Date:</strong></td>
+                                                <td>May 15, 2024</td>
+                                            </tr>
+                                        </table>
+                                        <button class="btn btn-primary w-100" onclick="showPaymentModal()">Make Payment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Payment History</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>April 1, 2024</td>
+                                            <td>Membership Dues</td>
+                                            <td>$50</td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                            <td><a href="#">Download</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td>March 20, 2024</td>
+                                            <td>Seminar Registration</td>
+                                            <td>$15</td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                            <td><a href="#">Download</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Donations View -->
+                    <div id="donationsView" class="view-container">
+                        <div class="page-header">
+                            <h2>Charitable Contributions</h2>
+                        </div>
+
+                        <div class="mb-3">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="toggleSection('donationCards')">
+                                <i class="fas fa-chevron-down"></i> Show/Hide Donation Options
+                            </button>
+                        </div>
+
+                        <div class="row" id="donationCards">
+                            <div class="col-md-4">
+                                <div class="card donation-card">
+                                    <div class="card-header donation-header">
+                                        <h6 class="mb-0">Zakat</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <p class="text-muted">Obligatory Charity</p>
+                                        <p class="stat-value">$500</p>
+                                        <small class="text-muted">Total contributed</small>
+                                        <button class="btn btn-sm btn-primary mt-3 w-100" onclick="showDonationModal('Zakat')">Contribute</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card donation-card">
+                                    <div class="card-header donation-header">
+                                        <h6 class="mb-0">Sadaqah</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <p class="text-muted">Voluntary Charity</p>
+                                        <p class="stat-value">$250</p>
+                                        <small class="text-muted">Total contributed</small>
+                                        <button class="btn btn-sm btn-primary mt-3 w-100" onclick="showDonationModal('Sadaqah')">Contribute</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card donation-card">
+                                    <div class="card-header donation-header">
+                                        <h6 class="mb-0">Community Fund</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <p class="text-muted">General Donations</p>
+                                        <p class="stat-value">$180</p>
+                                        <small class="text-muted">Total contributed</small>
+                                        <button class="btn btn-sm btn-primary mt-3 w-100" onclick="showDonationModal('Community Fund')">Contribute</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Donation History</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Purpose</th>
+                                            <th>Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>April 25, 2024</td>
+                                            <td>Zakat</td>
+                                            <td>$100</td>
+                                            <td>General Charity</td>
+                                            <td><a href="#">Download</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td>April 20, 2024</td>
+                                            <td>Sadaqah</td>
+                                            <td>$50</td>
+                                            <td>Medical Fund</td>
+                                            <td><a href="#">Download</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Member Database View -->
+                    <div id="memberDatabaseView" class="view-container">
+                        <div class="page-header">
+                            <h2>Member Database</h2>
+                            <input type="text" class="form-control form-control-sm" id="memberSearchBox" placeholder="Search members..." style="max-width: 300px;" oninput="searchMembers()">
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Student ID</th>
+                                            <th>Email</th>
+                                            <th>Course</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="membersList">
+                                        <tr>
+                                            <td>Ahmed Hassan</td>
+                                            <td>STU001</td>
+                                            <td>ahmed@university.edu</td>
+                                            <td>Medicine (MBBS)</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" onclick="viewMemberDetails('STU001')">View</button>
+                                                <button class="btn btn-sm btn-warning" onclick="editMember('STU001')">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Fatima Ali</td>
+                                            <td>STU002</td>
+                                            <td>fatima@university.edu</td>
+                                            <td>Nursing</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" onclick="viewMemberDetails('STU002')">View</button>
+                                                <button class="btn btn-sm btn-warning" onclick="editMember('STU002')">Edit</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Events Management View -->
+                    <div id="adminEventsView" class="view-container">
+                        <div class="page-header">
+                            <h2>Manage Events</h2>
+                            <button class="btn btn-primary" onclick="showCreateEventModal()">Create New Event</button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Event Name</th>
+                                            <th>Date</th>
+                                            <th>Location</th>
+                                            <th>Registrations</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Islamic Seminar</td>
+                                            <td>April 28, 2024</td>
+                                            <td>Main Hall</td>
+                                            <td>45</td>
+                                            <td><span class="badge bg-info">Upcoming</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" onclick="viewEventDetails('Islamic Seminar')">View</button>
+                                                <button class="btn btn-sm btn-warning" onclick="editEvent('Islamic Seminar')">Edit</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Welfare Management View -->
+                    <div id="adminWelfareView" class="view-container">
+                        <div class="page-header">
+                            <h2>Welfare Request Management</h2>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Member</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Date Submitted</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Ahmed Hassan</td>
+                                            <td>Medical Support</td>
+                                            <td>$500</td>
+                                            <td>April 20, 2024</td>
+                                            <td><span class="badge bg-warning text-dark">Pending Review</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success" onclick="approveWelfare()">Approve</button>
+                                                <button class="btn btn-sm btn-danger" onclick="rejectWelfare()">Reject</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Leadership View -->
+                    <div id="leadershipView" class="view-container">
+                        <div class="page-header">
+                            <h2>Leadership Management</h2>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="showLeadershipModal()">Add Leadership Role</button>
+                                <button class="btn btn-success" onclick="showPublicLeadershipModal()">Manage Public Leadership</button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-crown"></i>
+                                        </div>
+                                        <h6>President / Ameer</h6>
+                                        <p class="text-muted">Name: Mohammed Ahmed</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('President')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-handshake"></i>
+                                        </div>
+                                        <h6>Vice President</h6>
+                                        <p class="text-muted">Name: Fatima Hassan</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('Vice President')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-pen"></i>
+                                        </div>
+                                        <h6>Secretary General</h6>
+                                        <p class="text-muted">Name: Ali Ibrahim</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('Secretary General')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-coins"></i>
+                                        </div>
+                                        <h6>Financial Secretary</h6>
+                                        <p class="text-muted">Name: Amira Khan</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('Financial Secretary')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                        <h6>Welfare Officer</h6>
+                                        <p class="text-muted">Name: Sarah Ali</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('Welfare Officer')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card leadership-card">
+                                    <div class="card-body text-center">
+                                        <div class="leadership-icon">
+                                            <i class="fas fa-mosque"></i>
+                                        </div>
+                                        <h6>Religious Affairs</h6>
+                                        <p class="text-muted">Name: Imam Mohamed</p>
+                                        <p class="text-muted">Term: Jan 2024 - Dec 2024</p>
+                                        <button class="btn btn-sm btn-warning" onclick="editLeadership('Religious Affairs')">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Reports View -->
+                    <div id="reportsView" class="view-container">
+                        <div class="page-header">
+                            <h2>System Reports</h2>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <h6>Total Members</h6>
+                                        <p class="stat-value">256</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <h6>Active Members</h6>
+                                        <p class="stat-value">240</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-money-bill"></i>
+                                        </div>
+                                        <h6>Total Donations</h6>
+                                        <p class="stat-value">$15,240</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <div class="card-body">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <h6>Events Held</h6>
+                                        <p class="stat-value">28</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Membership Status Report</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="membershipChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Donation Distribution</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="donationChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Welfare Requests Report</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Request Type</th>
+                                            <th>Total Requests</th>
+                                            <th>Approved</th>
+                                            <th>Pending</th>
+                                            <th>Rejected</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Medical Support</td>
+                                            <td>15</td>
+                                            <td>12</td>
+                                            <td>2</td>
+                                            <td>1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Financial Assistance</td>
+                                            <td>20</td>
+                                            <td>16</td>
+                                            <td>3</td>
+                                            <td>1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Accommodation Support</td>
+                                            <td>10</td>
+                                            <td>8</td>
+                                            <td>2</td>
+                                            <td>0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Gallery Management View -->
+                    <div id="adminGalleryView" class="view-container">
+                        <div class="page-header">
+                            <h2>Gallery Management</h2>
+                            <button class="btn btn-primary" onclick="showAddGalleryModal()">Add Gallery Item</button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Current Gallery Items</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Description</th>
+                                            <th>Image</th>
+                                            <th>Icon</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="galleryItemsList">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">No gallery items yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Contact Management View -->
+                    <div id="adminContactView" class="view-container">
+                        <div class="page-header">
+                            <h2>Contact Information Management</h2>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Location</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Address</label>
+                                            <textarea class="form-control" id="contactLocation" rows="2" placeholder="Enter location address"></textarea>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateContactInfo('location')">Update Location</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Phone</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="contactPhone" placeholder="Enter phone number">
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateContactInfo('phone')">Update Phone</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Email</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" id="contactEmail" placeholder="Enter email address">
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateContactInfo('email')">Update Email</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Office Hours</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Hours</label>
+                                            <input type="text" class="form-control" id="contactHours" placeholder="e.g., Monday - Friday: 10 AM - 6 PM">
+                                        </div>
+                                        <button class="btn btn-primary" onclick="updateContactInfo('hours')">Update Hours</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Current Contact Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Location:</strong></p>
+                                        <p id="displayLocation">College of Medicine, Main Campus</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Phone:</strong></p>
+                                        <p id="displayPhone">+1 (555) 123-4567</p>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <p><strong>Email:</strong></p>
+                                        <p id="displayEmail">info@commuj.org</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Office Hours:</strong></p>
+                                        <p id="displayHours">Monday - Friday: 10 AM - 6 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Welfare Request Modal -->
+    <div class="modal fade" id="welfareModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Submit Welfare Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="welfareForm">
+                        <div class="mb-3">
+                            <label class="form-label">Request Type</label>
+                            <select class="form-select" id="welfareType" required>
+                                <option value="">Select type</option>
+                                <option value="financial">Financial Assistance</option>
+                                <option value="medical">Medical Support</option>
+                                <option value="accommodation">Accommodation Support</option>
+                                <option value="food">Food Support</option>
+                                <option value="counseling">Counseling</option>
+                                <option value="emergency">Emergency Support</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="welfareDescription" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Requested Amount (if applicable)</label>
+                            <input type="number" class="form-control" id="welfareAmount" placeholder="$">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Supporting Documents</label>
+                            <input type="file" class="form-control" id="welfareDocuments" multiple>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitWelfareRequest()">Submit Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Make Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Payment Type</label>
+                            <select class="form-select" id="paymentType" required>
+                                <option value="">Select payment type</option>
+                                <option value="membershipDues">Membership Dues</option>
+                                <option value="activityFee">Activity Fee</option>
+                                <option value="specialEvents">Special Events Fee</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="paymentAmount" placeholder="$" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" required>
+                                <option value="">Select payment method</option>
+                                <option value="creditCard">Credit Card</option>
+                                <option value="bankTransfer">Bank Transfer</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="cash">Cash Payment</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="processPayment()">Proceed to Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div class="modal fade" id="donationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="donationModalTitle">Make Donation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="donationForm">
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="donationAmount" placeholder="$" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" required>
+                                <option value="">Select payment method</option>
+                                <option value="creditCard">Credit Card</option>
+                                <option value="bankTransfer">Bank Transfer</option>
+                                <option value="cash">Cash</option>
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="anonymousDonation">
+                            <label class="form-check-label" for="anonymousDonation">
+                                Anonymous Donation
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitDonation()">Donate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Registration Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Event Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <div class="mb-3">
+                            <label class="form-label">Select Event</label>
+                            <select class="form-select" id="eventSelect" required>
+                                <option value="">Choose an event</option>
+                                <option value="islamic-seminar">Islamic Seminar - April 28</option>
+                                <option value="jummaah">Jumu'ah Prayer - April 26</option>
+                                <option value="quran-workshop">Quran Recitation Workshop - May 2</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Number of Attendees</label>
+                            <input type="number" class="form-control" id="attendeeCount" min="1" value="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Special Requirements</label>
+                            <textarea class="form-control" id="eventRequirements" rows="3" placeholder="Any dietary restrictions, accessibility needs, etc."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEventRegistration()">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal (Admin) -->
+    <div class="modal fade" id="createEventModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createEventForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Event Name</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Event Date</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Time</label>
+                                <input type="time" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Time</label>
+                                <input type="time" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="4" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Event Type</label>
+                            <select class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="seminar">Seminar</option>
+                                <option value="prayer">Prayer</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="conference">Conference</option>
+                                <option value="celebration">Celebration</option>
+                                <option value="volunteer">Volunteer Program</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Max Capacity</label>
+                            <input type="number" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEvent()">Create Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leadership Modal (Admin) -->
+    <div class="modal fade" id="leadershipModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add/Edit Leadership Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="leadershipForm">
+                        <div class="mb-3">
+                            <label class="form-label">Leadership Position</label>
+                            <select class="form-select" required>
+                                <option value="">Select position</option>
+                                <option value="president">President/Ameer</option>
+                                <option value="vp">Vice President</option>
+                                <option value="secretary">Secretary General</option>
+                                <option value="treasurer">Financial Secretary</option>
+                                <option value="welfare">Welfare Officer</option>
+                                <option value="religious">Religious Affairs Officer</option>
+                                <option value="sisters">Sisters' Coordinator</option>
+                                <option value="media">Media/Publicity Officer</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Member Name</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Member ID</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Term Start Date</label>
+                            <input type="date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Term End Date</label>
+                            <input type="date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact Number</label>
+                            <input type="tel" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLeadership()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Public Leadership Modal (Admin) -->
+    <div class="modal fade" id="publicLeadershipModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Public Leadership</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-success mb-3" onclick="showAddPublicLeaderModal()">Add New Leader</button>
+                    </div>
+                    <div id="publicLeadershipList">
+                        <!-- Public leadership list will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Public Leader Modal -->
+    <div class="modal fade" id="addPublicLeaderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Public Leader Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPublicLeaderForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="publicLeaderName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Position</label>
+                                <input type="text" class="form-control" id="publicLeaderPosition" placeholder="e.g., President, Vice President" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bio</label>
+                            <input type="text" class="form-control" id="publicLeaderBio" placeholder="e.g., Medicine (MBBS) - Year 5" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="publicLeaderDescription" rows="3" placeholder="Detailed description of responsibilities and achievements" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="publicLeaderEmail" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="publicLeaderPhone" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Profile Photo</label>
+                            <input type="file" class="form-control" id="publicLeaderPhoto" accept="image/*">
+                            <small class="text-muted">Optional: Upload a profile photo</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="savePublicLeader()">Save Leader</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Gallery Item Modal -->
+    <div class="modal fade" id="addGalleryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Gallery Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addGalleryForm">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="galleryTitle" placeholder="Gallery item title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="galleryDescription" placeholder="Gallery item description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-control" id="galleryImage" accept="image/*" onchange="previewGalleryImage()" required>
+                            <img id="galleryImagePreview" src="" alt="Selected gallery image preview" class="img-fluid mt-2 d-none" style="max-height:200px; object-fit:contain;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Icon (FontAwesome class)</label>
+                            <input type="text" class="form-control" id="galleryIcon" placeholder="Optional: fa-images, fa-book, fa-handshake">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveGalleryItem()">Add Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="commuj.javascript"></script>
+</body>
+</html>
