@@ -116,12 +116,12 @@ function loadLeadershipContent() {
     leadershipRequest
     .then(result => {
         let leaders = result.data || [];
-        
+
         // Fallback to localStorage if no database results
         if (leaders.length === 0) {
             leaders = JSON.parse(localStorage.getItem('publicLeaders')) || [];
         }
-        
+
         if (leaders.length === 0) {
             leadershipContainer.innerHTML = `
                 <div class="col-12 text-center">
@@ -130,7 +130,7 @@ function loadLeadershipContent() {
             `;
             return;
         }
-        
+
         leadershipContainer.innerHTML = leaders.map(leader => `
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="leadership-card" onclick="showLeaderDetails('${leader.name}', '${leader.position}', '${leader.bio || ''}', '${leader.description || ''}', '${leader.email || ''}', '${leader.phone || ''}')">
@@ -149,7 +149,7 @@ function loadLeadershipContent() {
         console.log('Dynamic content unavailable, using local data:', error);
         // Fallback to localStorage
         const publicLeaders = JSON.parse(localStorage.getItem('publicLeaders')) || [];
-        
+
         if (publicLeaders.length === 0) {
             leadershipContainer.innerHTML = `
                 <div class="col-12 text-center">
@@ -158,7 +158,7 @@ function loadLeadershipContent() {
             `;
             return;
         }
-        
+
         leadershipContainer.innerHTML = publicLeaders.map(leader => `
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="leadership-card" onclick="showLeaderDetails('${leader.name}', '${leader.position}', '${leader.bio}', '${leader.description}', '${leader.email}', '${leader.phone}')">
@@ -186,12 +186,12 @@ function loadGalleryContent() {
     galleryRequest
     .then(result => {
         let galleryItems = result.data || [];
-        
+
         // Fallback to localStorage if no database results
         if (galleryItems.length === 0) {
             galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
         }
-        
+
         if (galleryItems.length === 0) {
             galleryContainer.innerHTML = `
                 <div class="col-12 text-center">
@@ -200,7 +200,7 @@ function loadGalleryContent() {
             `;
             return;
         }
-        
+
         galleryContainer.innerHTML = galleryItems.map(item => `
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="gallery-item" onclick="showGalleryImage('${item.title}', '${item.description || ''}', '${item.image_url || item.imageData || item.imageUrl || ''}')">
@@ -218,7 +218,7 @@ function loadGalleryContent() {
         console.log('Dynamic content unavailable, using local data:', error);
         // Fallback to localStorage
         const galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
-        
+
         if (galleryItems.length === 0) {
             galleryContainer.innerHTML = `
                 <div class="col-12 text-center">
@@ -227,7 +227,7 @@ function loadGalleryContent() {
             `;
             return;
         }
-        
+
         galleryContainer.innerHTML = galleryItems.map(item => `
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="gallery-item" onclick="showGalleryImage('${item.title}', '${item.description}', '${item.imageData || item.imageUrl || ''}')">
@@ -363,7 +363,7 @@ function initializeApp() {
         currentRole = localStorage.getItem('currentRole');
         showDashboard();
     }
-    
+
     // Load stored data
     registeredEvents = JSON.parse(localStorage.getItem('registeredEvents')) || [];
     welfareRequests = JSON.parse(localStorage.getItem('welfareRequests')) || [];
@@ -401,72 +401,72 @@ function getRegisteredUser(identifier) {
 
 function handleLogin(e) {
     e.preventDefault();
-    
+
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const role = document.getElementById('userRole').value;
-    
+
     if (!username || !password || !role) {
         alert('Please fill in all fields.');
         return;
     }
-    
+
     const user = getRegisteredUser(username);
     if (!user) {
         alert('No registered account found. Please register first.');
         return;
     }
-    
+
     if (user.password !== password) {
         alert('Invalid password.');
         return;
     }
-    
+
     if (user.role !== role) {
         alert('Role mismatch. Please login with the role you registered as: ' + (user.role || 'student') + '.');
         return;
     }
-    
+
     currentUser = user;
     currentRole = role;
-    
+
     localStorage.setItem('currentUser', JSON.stringify(user));
     localStorage.setItem('currentRole', role);
-    
+
     document.getElementById('loginForm').reset();
     showDashboard();
 }
 
 function handleRegistration(e) {
     e.preventDefault();
-    
+
     const fullName = document.getElementById('fullName').value.trim();
     const studentId = document.getElementById('studentId').value.trim();
     const password = document.getElementById('regPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const email = document.getElementById('email').value.trim();
     const role = document.getElementById('regRole').value;
-    
+
     if (!role) {
         alert('Please select a role for registration.');
         return;
     }
-    
+
     if (password !== confirmPassword) {
         alert('Passwords do not match.');
         return;
     }
-    
+
     if (password.length < 6) {
         alert('Password must be at least 6 characters.');
         return;
     }
-    
+
     if (getRegisteredUser(studentId) || getRegisteredUser(email)) {
         alert('A user with this Student ID or email is already registered.');
         return;
     }
-    
+
     const newUser = {
         username: studentId,
         fullName: fullName,
@@ -485,10 +485,10 @@ function handleRegistration(e) {
         localGuardian: document.getElementById('localGuardian').value,
         passportPhoto: document.getElementById('passportPhoto').value ? document.getElementById('passportPhoto').value.split('\\').pop() : ''
     };
-    
+
     allMembers.push(newUser);
     localStorage.setItem('allMembers', JSON.stringify(allMembers));
-    
+
     alert('Registration successful! Please login using the role you registered with.');
     document.getElementById('registrationForm').reset();
     document.querySelector('[data-bs-target="#loginTab"]').click();
@@ -511,7 +511,7 @@ function showForgotPassword() {
 function togglePasswordVisibility() {
     const passwordInput = document.getElementById('loginPassword');
     const toggleBtn = document.getElementById('togglePassword');
-    
+
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
         toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
@@ -533,13 +533,13 @@ function showDashboard() {
     document.getElementById('loginPage').classList.remove('active');
     document.getElementById('dashboardPage').classList.add('active');
     document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
-    
+
     if (currentRole === 'executive' || currentRole === 'admin') {
         document.getElementById('adminMenu').style.display = 'block';
     } else {
         document.getElementById('adminMenu').style.display = 'none';
     }
-    
+
     switchView('dashboard');
     setTimeout(() => {
         loadDashboardData();
@@ -555,25 +555,25 @@ function switchView(viewName) {
         alert('Access denied. Admin privileges required.');
         return;
     }
-    
+
     document.querySelectorAll('.view-container').forEach(view => {
         view.classList.remove('active');
     });
-    
+
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
-    
+
     const viewElement = document.getElementById(viewName + 'View');
     if (viewElement) {
         viewElement.classList.add('active');
     }
-    
+
     const activeEvent = typeof event !== 'undefined' ? event : null;
     if (activeEvent && activeEvent.target) {
         activeEvent.target.classList.add('active');
     }
-    
+
     loadViewData(viewName);
 }
 
@@ -640,7 +640,7 @@ function loadViewData(viewName) {
 function loadProfileData() {
     const storedProfile = JSON.parse(localStorage.getItem('profileData')) || {};
     const profileData = currentUser || storedProfile || {};
-    
+
     document.getElementById('profileName').textContent = profileData.fullName || profileData.name || 'Student Name';
     document.getElementById('profileFullName').textContent = profileData.fullName || profileData.name || '-';
     document.getElementById('profileStudentId').textContent = profileData.studentId || profileData.username || '-';
@@ -669,7 +669,7 @@ function loadMembershipStatus() {
         joinDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toLocaleDateString(),
         tier: 'Full Member'
     };
-    
+
     const container = document.getElementById('membershipStatusDetails');
     if (container) {
         container.innerHTML = `
@@ -701,7 +701,7 @@ function loadPrayerTimes() {
         { name: 'Isha', time: '9:00 PM' },
         { name: 'Jumu\'ah', time: '1:30 PM (Friday)' }
     ];
-    
+
     const container = document.getElementById('prayerTimesDetails');
     if (container) {
         container.innerHTML = `<div class="row">${prayerTimes.map(prayer => `
@@ -719,10 +719,68 @@ function loadPrayerTimes() {
 
 // EVENTS
 function loadEventsData() {
+    renderAvailableEvents();
+    populateEventSelect();
     updateRegisteredEventsList();
 }
 
+function getAvailableEvents() {
+    return [...allEvents, ...readList('adminEvents')].filter((event, index, list) => {
+        const key = event.id || event.eventId || event.title || event.name;
+        return index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === key);
+    });
+}
+
+function renderAvailableEvents() {
+    const container = document.getElementById('eventsList');
+    if (!container) return;
+
+    const events = getAvailableEvents();
+    if (events.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No events have been added yet.</div>';
+        return;
+    }
+
+    container.innerHTML = events.map(event => {
+        const id = event.id || event.eventId || Date.now();
+        const title = event.title || event.name || 'Untitled event';
+        const date = event.event_date || event.date || 'Date not set';
+        const location = event.location || 'Location not set';
+        const description = event.description || '';
+
+        return `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card event-card">
+                    <div class="card-header event-header">
+                        <h6 class="mb-0">${title}</h6>
+                        <small>${date}</small>
+                    </div>
+                    <div class="card-body">
+                        <p><i class="fas fa-map-marker-alt"></i> ${location}</p>
+                        <p class="text-muted">${description}</p>
+                        <button class="btn btn-sm btn-primary" onclick="registerEvent('${id}')">Register</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function populateEventSelect() {
+    const select = document.getElementById('eventSelect');
+    if (!select) return;
+
+    const events = getAvailableEvents();
+    select.innerHTML = '<option value="">Choose an event</option>' + events.map(event => {
+        const id = event.id || event.eventId || event.title || event.name;
+        const title = event.title || event.name || 'Untitled event';
+        const date = event.event_date || event.date || '';
+        return `<option value="${id}">${title}${date ? ' - ' + date : ''}</option>`;
+    }).join('');
+}
+
 function showEventModal() {
+    populateEventSelect();
     const modal = new bootstrap.Modal(document.getElementById('eventModal'));
     modal.show();
 }
@@ -737,41 +795,32 @@ function submitEventRegistration() {
     const eventSelect = document.getElementById('eventSelect').value;
     const attendeeCount = document.getElementById('attendeeCount').value;
     const requirements = document.getElementById('eventRequirements').value;
-    
+
     if (!eventSelect) {
         showNotification('Please select an event', 'warning');
         return;
     }
-    
-    // Map event values to proper names
-    const eventNameMap = {
-        'islamic-seminar': 'Islamic Seminar',
-        'jummaah': 'Jumu\'ah Gathering',
-        'quran-workshop': 'Quran Recitation Workshop'
-    };
-    
-    const eventName = eventNameMap[eventSelect] || eventSelect;
-    const eventDates = {
-        'islamic-seminar': 'April 28, 2024',
-        'jummaah': 'April 26, 2024',
-        'quran-workshop': 'May 2, 2024'
-    };
-    
+
+    const selectedEvent = getAvailableEvents().find(event =>
+        String(event.id || event.eventId || event.title || event.name) === String(eventSelect)
+    );
+    const eventName = selectedEvent ? (selectedEvent.title || selectedEvent.name) : eventSelect;
+
     const registration = {
         eventName: eventName,
         eventId: eventSelect,
         attendees: attendeeCount,
         requirements: requirements,
-        date: eventDates[eventSelect] || new Date().toLocaleDateString(),
+        date: selectedEvent ? (selectedEvent.event_date || selectedEvent.date || new Date().toLocaleDateString()) : new Date().toLocaleDateString(),
         registrationDate: new Date().toLocaleDateString(),
         status: 'Registered'
     };
-    
+
     registeredEvents.push(registration);
     localStorage.setItem('registeredEvents', JSON.stringify(registeredEvents));
-    
+
     showNotification('Event registration successful! ' + eventName, 'success');
-    
+
     document.getElementById('eventForm').reset();
     bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
     updateRegisteredEventsList();
@@ -786,12 +835,12 @@ function cancelEventRegistration(eventId) {
 
 function updateRegisteredEventsList() {
     const tbody = document.getElementById('registeredEventsList');
-    
+
     if (registeredEvents.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No registered events</td></tr>';
         return;
     }
-    
+
     tbody.innerHTML = registeredEvents.map(event => `
         <tr>
             <td>${event.eventName}</td>
@@ -813,7 +862,7 @@ function saveEvent() {
     const eventTime = document.getElementById('createEventTime').value;
     const eventLocation = document.getElementById('createEventLocation').value;
     const eventDescription = document.getElementById('createEventDescription').value;
-    
+
     allEvents.push({
         name: eventName,
         date: eventDate,
@@ -823,7 +872,7 @@ function saveEvent() {
         createdDate: new Date().toLocaleDateString(),
         status: 'Upcoming'
     });
-    
+
     localStorage.setItem('allEvents', JSON.stringify(allEvents));
     alert('Event created successfully!');
     bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
@@ -861,16 +910,15 @@ function loadAnnouncements() {
         icon: 'bell'
     }));
 
-    const defaultAnnouncements = [
-        { title: 'Jumu\'ah Reminder', text: 'Join us Friday at 1:30 PM in the main hall', time: 'Today', icon: 'bell' },
-        { title: 'Islamic Seminar', text: 'Register for upcoming seminar on Islamic Ethics', time: 'Yesterday', icon: 'graduation-cap' },
-        { title: 'Welfare Support Available', text: 'Assistance programs are now open for applications', time: '2 days ago', icon: 'hands-helping' }
-    ];
+    const announcements = savedAnnouncements;
 
-    const announcements = savedAnnouncements.length > 0 ? savedAnnouncements : defaultAnnouncements;
-    
-    const container = document.getElementById('announcementsContent');
+    const container = document.getElementById('announcementsContainer');
     if (container) {
+        if (announcements.length === 0) {
+            container.innerHTML = '<p class="text-center text-muted">No announcements have been added yet.</p>';
+            return;
+        }
+
         container.innerHTML = announcements.map(ann => `
             <div class="card mb-3">
                 <div class="card-body">
@@ -895,7 +943,7 @@ function loadResources() {
         { title: 'Islamic Articles', description: 'Curated articles on Islamic topics', icon: 'newspaper', link: '#' },
         { title: 'Lectures', description: 'Recorded lectures by Islamic scholars', icon: 'microphone', link: '#' }
     ];
-    
+
     const container = document.getElementById('resourcesGrid');
     if (container) {
         container.innerHTML = `<div class="row">${resources.map(res => `
@@ -927,12 +975,12 @@ function submitWelfareRequest() {
     const type = document.getElementById('welfareType').value;
     const description = document.getElementById('welfareDescription').value;
     const amount = document.getElementById('welfareAmount').value;
-    
+
     if (!type || !description) {
         alert('Please fill in all required fields');
         return;
     }
-    
+
     welfareRequests.push({
         type: type,
         description: description,
@@ -941,10 +989,10 @@ function submitWelfareRequest() {
         status: 'Pending Review',
         submittedBy: currentUser.name
     });
-    
+
     localStorage.setItem('welfareRequests', JSON.stringify(welfareRequests));
     alert('Welfare request submitted successfully!');
-    
+
     document.getElementById('welfareForm').reset();
     bootstrap.Modal.getInstance(document.getElementById('welfareModal')).hide();
 }
@@ -971,7 +1019,7 @@ function loadDuesData() {
         status: 'Pending',
         description: 'Annual membership dues'
     };
-    
+
     const container = document.getElementById('duesDetails');
     if (container) {
         container.innerHTML = `
@@ -999,12 +1047,12 @@ function showPaymentModal() {
 function processPayment() {
     const paymentType = document.getElementById('paymentType').value;
     const amount = document.getElementById('paymentAmount').value;
-    
+
     if (!paymentType || !amount) {
         alert('Please fill in all payment details');
         return;
     }
-    
+
     payments.push({
         type: paymentType,
         amount: amount,
@@ -1013,10 +1061,10 @@ function processPayment() {
         paymentMethod: 'Online',
         receiptNumber: 'RCP' + Date.now()
     });
-    
+
     localStorage.setItem('payments', JSON.stringify(payments));
     alert('Payment processed successfully! Amount: $' + amount);
-    
+
     document.getElementById('paymentForm').reset();
     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 }
@@ -1028,7 +1076,7 @@ function loadDonationsData() {
         { name: 'Sadaqah', amount: '$250', description: 'Voluntary Charity', color: 'success' },
         { name: 'Community Fund', amount: '$150', description: 'Community Support', color: 'info' }
     ];
-    
+
     const container = document.getElementById('donationStats');
     if (container) {
         container.innerHTML = donationStats.map(stat => `
@@ -1055,12 +1103,12 @@ function showDonationModal(donationType) {
 function submitDonation() {
     const amount = document.getElementById('donationAmount').value;
     const isAnonymous = document.getElementById('anonymousDonation').checked;
-    
+
     if (!amount) {
         alert('Please enter a donation amount');
         return;
     }
-    
+
     donations.push({
         amount: amount,
         date: new Date().toLocaleDateString(),
@@ -1068,10 +1116,10 @@ function submitDonation() {
         donor: isAnonymous ? 'Anonymous' : currentUser.name,
         receiptNumber: 'DRT' + Date.now()
     });
-    
+
     localStorage.setItem('donations', JSON.stringify(donations));
     alert('Thank you for your donation of $' + amount + '!');
-    
+
     document.getElementById('donationForm').reset();
     bootstrap.Modal.getInstance(document.getElementById('donationModal')).hide();
 }
@@ -1105,7 +1153,7 @@ function searchMembers() {
     const searchTerm = document.getElementById('memberSearchBox').value.toLowerCase();
     const tbody = document.getElementById('membersList');
     const rows = tbody.querySelectorAll('tr');
-    
+
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(searchTerm) ? '' : 'none';
@@ -1139,14 +1187,84 @@ function loadAdminEvents() {
         index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === (event.id || event.eventId || event.title || event.name))
     );
     localStorage.setItem('allEvents', JSON.stringify(allEvents));
+
+    const tbody = document.getElementById('adminEventsList');
+    if (!tbody) return;
+
+    if (allEvents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No events have been added yet</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = allEvents.map(event => {
+        const title = event.title || event.name || 'Untitled event';
+        const date = event.event_date || event.date || 'Not set';
+        const location = event.location || 'Not set';
+        const status = event.status || 'Upcoming';
+        return `
+            <tr>
+                <td>${title}</td>
+                <td>${date}</td>
+                <td>${location}</td>
+                <td>${registeredEvents.filter(reg => reg.eventId === String(event.id || event.eventId || title)).length}</td>
+                <td><span class="badge bg-info">${status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewEventDetails('${title}')">View</button>
+                    <button class="btn btn-sm btn-warning" onclick="editEvent('${title}')">Edit</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function loadAdminWelfare() {
-    // Load admin welfare management
+    const tbody = document.getElementById('adminWelfareList');
+    if (!tbody) return;
+
+    if (welfareRequests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No welfare requests have been submitted yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = welfareRequests.map(request => `
+        <tr>
+            <td>${request.name || currentUser?.name || currentUser?.username || 'Member'}</td>
+            <td>${request.type || request.category || 'Support request'}</td>
+            <td>${request.amount || 'Not specified'}</td>
+            <td>${request.date || request.submittedDate || 'Recently'}</td>
+            <td><span class="badge bg-warning text-dark">${request.status || 'Pending Review'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="approveWelfare()">Approve</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectWelfare()">Reject</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function loadLeadership() {
-    // Load leadership roles
+    const container = document.getElementById('leadershipRolesList');
+    if (!container) return;
+
+    if (leadershipRoles.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No leadership roles have been added yet.</div>';
+        return;
+    }
+
+    container.innerHTML = leadershipRoles.map(role => `
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card leadership-card">
+                <div class="card-body text-center">
+                    <div class="leadership-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h6>${role.position}</h6>
+                    <p class="text-muted">Name: ${role.name}</p>
+                    <p class="text-muted">Term: ${role.startDate} - ${role.endDate}</p>
+                    <button class="btn btn-sm btn-warning" onclick="editLeadership('${role.position}')">Edit</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function showLeadershipModal() {
@@ -1159,12 +1277,12 @@ function saveLeadership() {
     const name = document.getElementById('leadershipName').value;
     const startDate = document.getElementById('leadershipStart').value;
     const endDate = document.getElementById('leadershipEnd').value;
-    
+
     if (!position || !name || !startDate || !endDate) {
         alert('Please fill in all fields');
         return;
     }
-    
+
     leadershipRoles.push({
         position: position,
         name: name,
@@ -1172,10 +1290,11 @@ function saveLeadership() {
         endDate: endDate,
         createdDate: new Date().toLocaleDateString()
     });
-    
+
     localStorage.setItem('leadershipRoles', JSON.stringify(leadershipRoles));
     alert('Leadership role saved successfully!');
     bootstrap.Modal.getInstance(document.getElementById('leadershipModal')).hide();
+    loadLeadership();
 }
 
 function editLeadership(position) {
@@ -1206,7 +1325,7 @@ function initializeCharts() {
         });
         membershipCtx.setAttribute('data-chart-initialized', 'true');
     }
-    
+
     // Donation Chart
     const donationCtx = document.getElementById('donationChart');
     if (donationCtx && !donationCtx.hasAttribute('data-chart-initialized')) {
@@ -1235,13 +1354,13 @@ function logout() {
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('currentRole');
-        
+
         currentUser = null;
         currentRole = null;
-        
+
         document.getElementById('dashboardPage').classList.remove('active');
         document.getElementById('loginPage').classList.add('active');
-        
+
         document.getElementById('loginForm').reset();
         document.getElementById('registrationForm').reset();
     }
@@ -1283,9 +1402,9 @@ function showNotification(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     document.body.appendChild(alertDiv);
-    
+
     setTimeout(() => {
         alertDiv.remove();
     }, 5000);
@@ -1299,7 +1418,7 @@ function hasPermission(permission) {
         'imam': ['view_profile', 'manage_prayer_times', 'manage_lectures', 'view_announcements'],
         'finance': ['view_profile', 'manage_payments', 'generate_reports', 'view_donations']
     };
-    
+
     return rolePermissions[currentRole]?.includes(permission) || false;
 }
 
@@ -1341,8 +1460,8 @@ function getReportData(reportName) {
 
 // Search & Filter
 function searchItems(items, query, searchFields) {
-    return items.filter(item => 
-        searchFields.some(field => 
+    return items.filter(item =>
+        searchFields.some(field =>
             String(item[field]).toLowerCase().includes(query.toLowerCase())
         )
     );
@@ -1364,11 +1483,11 @@ function getFormData(formId) {
     const form = document.getElementById(formId);
     const formData = new FormData(form);
     const data = {};
-    
+
     formData.forEach((value, key) => {
         data[key] = value;
     });
-    
+
     return data;
 }
 
@@ -1442,70 +1561,60 @@ function throttle(func, limit) {
 // DASHBOARD DATA LOADING
 function loadDashboardData() {
     if (!currentUser) return;
-    
+
     // Update date
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const dateStr = new Date().toLocaleDateString('en-US', options);
     const dashboardDateEl = document.getElementById('dashboardDate');
     if (dashboardDateEl) dashboardDateEl.textContent = dateStr;
-    
+
     // Profile Summary
     document.getElementById('dashName').textContent = currentUser.name || currentUser.username;
-    document.getElementById('dashStudentId').textContent = currentUser.id || 'STU001';
-    document.getElementById('dashCourse').textContent = currentUser.course || 'Medicine (MBBS)';
-    document.getElementById('dashYear').textContent = currentUser.year || '3';
-    
+    document.getElementById('dashStudentId').textContent = currentUser.studentId || currentUser.id || 'Not set';
+    document.getElementById('dashCourse').textContent = currentUser.course || 'Not set';
+    document.getElementById('dashYear').textContent = currentUser.year || 'Not set';
+
     // Membership Status
     document.getElementById('membershipStatusValue').textContent = 'Active';
-    
+
     // Upcoming Events Count
-    const upcomingCount = allEvents.filter(e => new Date(e.date) > new Date()).length;
-    document.getElementById('upcomingEventsCount').textContent = upcomingCount || '5';
-    
+    const upcomingCount = getAvailableEvents().length;
+    document.getElementById('upcomingEventsCount').textContent = upcomingCount;
+
     // Dues Status
     const duesPaid = payments.filter(p => p.status === 'Completed').length > 0 ? 'Paid' : 'Pending';
     document.getElementById('duesStatusValue').textContent = duesPaid;
-    
+
     // Welfare Status
     const welfareCount = welfareRequests.filter(w => w.status === 'Pending').length;
     document.getElementById('welfareStatusValue').textContent = welfareCount || '0';
-    
+
     // Load Announcements
     const announcementsList = document.getElementById('announcementsList');
     if (announcementsList) {
-        const announcements = [
-            { title: 'Jumu\'ah Reminder', text: 'Join us Friday at 1:30 PM in the main hall', time: 'Today' },
-            { title: 'Islamic Seminar', text: 'Register for upcoming seminar on Islamic Ethics', time: 'Yesterday' }
-        ];
-        
-        announcementsList.innerHTML = announcements.map(ann => `
-            <div class="announcement-item">
-                <small class="text-muted"><i class="fas fa-clock"></i> ${ann.time}</small>
-                <p class="mb-1"><strong>${ann.title}</strong></p>
-                <p class="text-muted small">${ann.text}</p>
-            </div>
-        `).join('<hr>');
+        const announcements = readList('adminAnnouncements').map(ann => ({
+            title: ann.title,
+            text: ann.content,
+            time: ann.created_at ? new Date(ann.created_at).toLocaleDateString() : 'Recently'
+        }));
+
+        if (announcements.length === 0) {
+            announcementsList.innerHTML = '<p class="text-center text-muted mb-0">No announcements have been added yet.</p>';
+        } else {
+            announcementsList.innerHTML = announcements.map(ann => `
+                <div class="announcement-item">
+                    <small class="text-muted"><i class="fas fa-clock"></i> ${ann.time}</small>
+                    <p class="mb-1"><strong>${ann.title}</strong></p>
+                    <p class="text-muted small">${ann.text}</p>
+                </div>
+            `).join('<hr>');
+        }
     }
-    
+
     // Load Meetings
     const meetingsList = document.getElementById('meetingsList');
     if (meetingsList) {
-        const meetings = [
-            { title: 'Leadership Meeting', date: 'May 1, 2024', time: '3:00 PM', badge: 'Important', bgColor: 'info' },
-            { title: 'General Assembly', date: 'May 8, 2024', time: '5:00 PM', badge: 'General', bgColor: 'secondary' }
-        ];
-        
-        meetingsList.innerHTML = meetings.map(mtg => `
-            <div class="meeting-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <p class="mb-1"><strong>${mtg.title}</strong></p>
-                        <small class="text-muted"><i class="fas fa-clock"></i> ${mtg.date} @ ${mtg.time}</small>
-                    </div>
-                    <span class="badge bg-${mtg.bgColor}">${mtg.badge}</span>
-                </div>
-            </div>
-        `).join('<hr>');
+        meetingsList.innerHTML = '<p class="text-center text-muted mb-0">No meetings have been added yet.</p>';
     }
 }
 
@@ -1554,12 +1663,12 @@ function submitVolunteerSignup() {
     const skills = document.getElementById('volunteerSkills').value;
     const availability = document.getElementById('volunteerAvailability').value;
     const commitment = document.getElementById('volunteerCommit').checked;
-    
+
     if (!opportunity || !availability || !commitment) {
         showNotification('Please fill in all required fields', 'warning');
         return;
     }
-    
+
     // Add to volunteer records
     const volunteerRecord = {
         opportunity: opportunity,
@@ -1568,14 +1677,14 @@ function submitVolunteerSignup() {
         dateSignedUp: new Date().toLocaleDateString(),
         status: 'Active'
     };
-    
+
     let volunteerRecords = JSON.parse(localStorage.getItem('volunteerRecords')) || [];
     volunteerRecords.push(volunteerRecord);
     localStorage.setItem('volunteerRecords', JSON.stringify(volunteerRecords));
-    
+
     bootstrap.Modal.getInstance(document.getElementById('volunteerModal')).hide();
     showNotification('Successfully signed up for volunteering!', 'success');
-    
+
     // Clear form
     document.getElementById('volunteerForm').reset();
 }
@@ -1684,7 +1793,7 @@ function displayHadith(hadith, position, total) {
     const translationElement = document.getElementById('hadithTranslation');
     const counterElement = document.getElementById('hadithCounter');
     const totalElement = document.getElementById('hadithTotal');
-    
+
     if (textElement) {
         textElement.innerHTML = hadith.arabic || 'Hadith not found';
         textElement.style.animation = 'none';
@@ -1692,19 +1801,19 @@ function displayHadith(hadith, position, total) {
             textElement.style.animation = 'welcomeFadeInScale 0.6s ease-out';
         }, 10);
     }
-    
+
     if (referenceElement) {
         referenceElement.textContent = hadith.reference || '';
     }
-    
+
     if (translationElement) {
         translationElement.innerHTML = `<strong>Translation:</strong> ${hadith.english || 'Translation not available'}`;
     }
-    
+
     if (counterElement) {
         counterElement.textContent = position;
     }
-    
+
     if (totalElement) {
         totalElement.textContent = total;
     }
@@ -1761,7 +1870,7 @@ function loadLocalHadiths() {
             source: 'Prophet Muhammad (Peace Be Upon Him)'
         }
     ];
-    
+
     const today = new Date().getDate();
     currentHadithIndex = today % allHadiths.length;
     displayHadith(allHadiths[currentHadithIndex], currentHadithIndex + 1, allHadiths.length);
@@ -1784,7 +1893,7 @@ function loadAdminContact() {
         email: '',
         hours: ''
     };
-    
+
     // Populate form fields
     document.getElementById('contactLocation').value = contactInfo.location || '';
     document.getElementById('contactPhone').value = contactInfo.phone || '';
@@ -1799,10 +1908,10 @@ function updateContactInfo(type) {
         email: '',
         hours: ''
     };
-    
+
     let value = '';
     let fieldName = '';
-    
+
     switch(type) {
         case 'location':
             value = document.getElementById('contactLocation').value.trim();
@@ -1825,12 +1934,12 @@ function updateContactInfo(type) {
             if (value) contactInfo.hours = value;
             break;
     }
-    
+
     if (!value) {
         showNotification('Please enter a value for ' + fieldName, 'warning');
         return;
     }
-    
+
     // Save to localStorage
     localStorage.setItem('contactInfo', JSON.stringify(contactInfo));
     showNotification(fieldName + ' updated successfully!', 'success');
@@ -1839,15 +1948,15 @@ function updateContactInfo(type) {
 // GALLERY MANAGEMENT
 function loadAdminGallery() {
     let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
-    
+
     const galleryList = document.getElementById('galleryItemsList');
     if (!galleryList) return;
-    
+
     if (galleryItems.length === 0) {
         galleryList.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No gallery items yet</td></tr>';
         return;
     }
-    
+
     galleryList.innerHTML = galleryItems.map((item, index) => `
         <tr>
             <td>${item.title}</td>
@@ -1926,7 +2035,7 @@ function saveGalleryItem() {
         // Refresh gallery display
         loadAdminGallery();
         loadGalleryContent(); // Refresh landing page gallery
-        
+
         showNotification('Gallery item added successfully!', 'success');
     };
     reader.readAsDataURL(file);
@@ -1934,11 +2043,11 @@ function saveGalleryItem() {
 
 function removeGalleryItem(index) {
     if (!confirm('Are you sure you want to remove this gallery item?')) return;
-    
+
     let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
     galleryItems.splice(index, 1);
     localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
-    
+
     loadAdminGallery();
     loadGalleryContent(); // Refresh landing page gallery
     showNotification('Gallery item removed!', 'success');
