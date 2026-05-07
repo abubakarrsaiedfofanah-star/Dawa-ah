@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#2c5aa0"/>
+  <rect x="48" y="48" width="704" height="404" rx="18" fill="#ffffff" opacity="0.12"/>
+  <circle cx="400" cy="190" r="72" fill="#16a34a"/>
+  <path d="M214 362L340 250l82 74 54-48 112 86H214z" fill="#ffffff" opacity="0.92"/>
+  <text x="400" y="424" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">COMMUJ Gallery</text>
+</svg>

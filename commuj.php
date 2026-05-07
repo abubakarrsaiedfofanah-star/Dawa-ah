@@ -43,12 +43,23 @@ function getAllHadithsAPI() {
 
 // Get daily hadith from database
 function getDailyHadithAPI() {
+    $hadiths = getAllHadiths();
     $hadith = getDailyHadith();
     
     if ($hadith) {
+        $position = 1;
+        foreach ($hadiths as $index => $item) {
+            if ((int)$item['id'] === (int)$hadith['id']) {
+                $position = $index + 1;
+                break;
+            }
+        }
+
         echo json_encode([
             'success' => true,
             'data' => $hadith,
+            'position' => $position,
+            'total' => count($hadiths),
             'date' => date('Y-m-d')
         ]);
     } else {

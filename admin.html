@@ -58,7 +58,7 @@
             color: #ccc;
             padding: 12px 20px;
             text-decoration: none;
-            transition: all 0.3s;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
             border-left: 3px solid transparent;
         }
         
@@ -67,6 +67,7 @@
             background: rgba(255,255,255,0.1);
             color: white;
             border-left-color: var(--secondary-color);
+            transform: translateX(3px);
         }
         
         .main-content {
@@ -105,6 +106,30 @@
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+            border: 1px solid transparent;
+        }
+
+        .dashboard-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(44,90,160,0.16);
+            border-color: rgba(44,90,160,0.25);
+        }
+
+        .dashboard-stat-card:active,
+        .dashboard-stat-card.active {
+            transform: translateY(-1px);
+            background: #f0f7ff;
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 18px rgba(44,90,160,0.18);
+        }
+
+        .dashboard-stat-card small {
+            color: #64748b;
+        }
+
+        #dashboardDetailTable {
+            transition: opacity 0.25s ease;
         }
         
         .form-section {
@@ -126,20 +151,26 @@
         .btn-primary {
             background: var(--primary-color);
             border-color: var(--primary-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
         }
         
         .btn-primary:hover {
             background: #1f4080;
             border-color: #1f4080;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(44,90,160,0.22);
         }
         
         .btn-success {
             background: var(--secondary-color);
             border-color: var(--secondary-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
         
         .btn-success:hover {
             background: #15803d;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(22,163,74,0.2);
         }
         
         .item-card {
@@ -151,6 +182,13 @@
             display: flex;
             justify-content: space-between;
             align-items: start;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(44,90,160,0.25);
+            box-shadow: 0 8px 16px rgba(15,23,42,0.08);
         }
         
         .item-info h5 {
@@ -215,6 +253,9 @@
                 <li><a href="#" onclick="switchAdminView('events')"><i class="fas fa-calendar"></i> Events</a></li>
                 <li><a href="#" onclick="switchAdminView('leadership')"><i class="fas fa-users"></i> Leadership</a></li>
                 <li><a href="#" onclick="switchAdminView('gallery')"><i class="fas fa-images"></i> Gallery</a></li>
+                <li><a href="#" onclick="switchAdminView('welfare')"><i class="fas fa-hands-helping"></i> Welfare</a></li>
+                <li><a href="#" onclick="switchAdminView('prayer')"><i class="fas fa-mosque"></i> Prayer Times</a></li>
+                <li><a href="#" onclick="switchAdminView('resources')"><i class="fas fa-folder-open"></i> Resources</a></li>
                 <li><a href="#" onclick="switchAdminView('hadiths')"><i class="fas fa-book"></i> Hadiths</a></li>
                 <li><a href="#" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -233,34 +274,94 @@
             <div id="dashboardView" class="admin-content active">
                 <div class="row">
                     <div class="col-md-3 mb-3">
-                        <div class="content-card text-center">
-                            <h5>Total Announcements</h5>
-                            <h2 id="announcementCount" style="color: var(--primary-color);">0</h2>
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('members')">
+                            <h5>Members</h5>
+                            <h2 id="memberCount" style="color: var(--primary-color);">0</h2>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <div class="content-card text-center">
-                            <h5>Active Events</h5>
-                            <h2 id="eventCount" style="color: var(--secondary-color);">0</h2>
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('students')">
+                            <h5>Students</h5>
+                            <h2 id="studentCount" style="color: var(--secondary-color);">0</h2>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <div class="content-card text-center">
-                            <h5>Leadership Members</h5>
-                            <h2 id="leaderCount" style="color: #f59e0b;">0</h2>
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('donations')">
+                            <h5>Total Donations</h5>
+                            <h2 id="donationTotal" style="color: #16a34a;">$0</h2>
+                            <small><span id="donationCount">0</span> donation records</small>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <div class="content-card text-center">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('payments')">
+                            <h5>Total Payments</h5>
+                            <h2 id="paymentTotal" style="color: #0ea5e9;">$0</h2>
+                            <small><span id="paymentCount">0</span> payment records</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('welfare')">
+                            <h5>Welfare Requests</h5>
+                            <h2 id="welfareCount" style="color: #f59e0b;">0</h2>
+                            <small><span id="pendingWelfareCount">0</span> pending</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('events')">
+                            <h5>Events</h5>
+                            <h2 id="eventCount" style="color: #ef4444;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('announcements')">
+                            <h5>Announcements</h5>
+                            <h2 id="announcementCount" style="color: #6366f1;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('resources')">
+                            <h5>Resources</h5>
+                            <h2 id="resourceCount" style="color: #14b8a6;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('gallery')">
                             <h5>Gallery Items</h5>
                             <h2 id="galleryCount" style="color: #8b5cf6;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('leadership')">
+                            <h5>Leadership</h5>
+                            <h2 id="leaderCount" style="color: #f97316;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('hadiths')">
+                            <h5>Hadiths</h5>
+                            <h2 id="hadithCount" style="color: #64748b;">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('prayer')">
+                            <h5>Prayer Days</h5>
+                            <h2 id="prayerCount" style="color: #22c55e;">0</h2>
                         </div>
                     </div>
                 </div>
                 <div class="content-card">
                     <h4><i class="fas fa-info-circle"></i> System Information</h4>
-                    <p>Welcome to COMMUJ Admin Panel. Use the menu on the left to manage announcements, events, leadership members, and gallery items.</p>
+                    <p>Welcome to COMMUJ Admin Panel. This dashboard shows live database totals for members, payments, donations, welfare, content, and resources.</p>
                     <p>All changes you make here will be immediately reflected to regular users on the system.</p>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="seedSampleDatabaseData()">
+                        <i class="fas fa-database"></i> Add Sample Database Records
+                    </button>
+                </div>
+                <div class="content-card">
+                    <h4 id="dashboardDetailTitle"><i class="fas fa-table"></i> Database Details</h4>
+                    <div id="dashboardDetailTable">
+                        <p class="text-muted">Click any dashboard card above to view its database records.</p>
+                    </div>
                 </div>
             </div>
             
@@ -332,6 +433,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label>Category</label>
+                                    <input type="text" class="form-control" id="eventCategory" placeholder="e.g. lecture, welfare, orientation">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label>Maximum Participants</label>
+                                    <input type="number" class="form-control" id="eventCapacity" placeholder="100" min="1">
+                                </div>
+                            </div>
+                        </div>
                         <button class="btn btn-success" onclick="createEvent()">
                             <i class="fas fa-save"></i> Create Event
                         </button>
@@ -339,6 +454,9 @@
                     
                     <h4 style="margin-top: 30px;"><i class="fas fa-list"></i> Upcoming Events</h4>
                     <div id="eventsList"></div>
+
+                    <h4 style="margin-top: 30px;"><i class="fas fa-user-check"></i> Event Registrations</h4>
+                    <div id="eventRegistrationsList"></div>
                 </div>
             </div>
             
@@ -405,8 +523,13 @@
                             <textarea class="form-control" id="galleryDescription" rows="2" placeholder="Item description"></textarea>
                         </div>
                         <div class="form-group mb-3">
-                            <label>Image URL *</label>
-                            <input type="url" class="form-control" id="galleryImageUrl" placeholder="https://example.com/image.jpg">
+                            <label>Upload Image *</label>
+                            <input type="file" class="form-control" id="galleryImageUpload" accept="image/*" onchange="previewAdminGalleryImage()">
+                            <img id="galleryImagePreview" src="" alt="Selected image preview" class="img-fluid mt-2 d-none" style="max-height: 180px; object-fit: contain;">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Or Image URL</label>
+                            <input type="url" class="form-control" id="galleryImageUrl" placeholder="Optional: https://example.com/image.jpg">
                         </div>
                         <button class="btn btn-success" onclick="addGalleryItem()">
                             <i class="fas fa-save"></i> Add to Gallery
@@ -419,6 +542,64 @@
             </div>
             
             <!-- Hadiths View -->
+            <div id="welfareView" class="admin-content">
+                <div class="content-card">
+                    <h4><i class="fas fa-hands-helping"></i> Welfare Requests</h4>
+                    <div id="welfareRequestsList"></div>
+                </div>
+            </div>
+
+            <div id="prayerView" class="admin-content">
+                <div class="content-card">
+                    <div class="form-section">
+                        <h4><i class="fas fa-mosque"></i> Manage Prayer Timetable</h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label>Date</label><input type="date" class="form-control" id="prayerDate"></div>
+                            <div class="col-md-4 mb-3"><label>Fajr</label><input type="time" class="form-control" id="prayerFajr"></div>
+                            <div class="col-md-4 mb-3"><label>Dhuhr</label><input type="time" class="form-control" id="prayerDhuhr"></div>
+                            <div class="col-md-4 mb-3"><label>Asr</label><input type="time" class="form-control" id="prayerAsr"></div>
+                            <div class="col-md-4 mb-3"><label>Maghrib</label><input type="time" class="form-control" id="prayerMaghrib"></div>
+                            <div class="col-md-4 mb-3"><label>Isha</label><input type="time" class="form-control" id="prayerIsha"></div>
+                            <div class="col-md-4 mb-3"><label>Jumu'ah</label><input type="time" class="form-control" id="prayerJummah"></div>
+                        </div>
+                        <button class="btn btn-success" onclick="savePrayerTimes()"><i class="fas fa-save"></i> Save Prayer Times</button>
+                    </div>
+                    <h4 style="margin-top: 30px;"><i class="fas fa-eye"></i> Current Saved Times</h4>
+                    <div id="prayerPreview"></div>
+                </div>
+            </div>
+
+            <div id="resourcesView" class="admin-content">
+                <div class="content-card">
+                    <div class="form-section">
+                        <h4><i class="fas fa-plus"></i> Add Resource</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label>Title *</label><input type="text" class="form-control" id="resourceTitle"></div>
+                            <div class="col-md-6 mb-3">
+                                <label>Type *</label>
+                                <select class="form-control" id="resourceType">
+                                    <option value="article">Article</option>
+                                    <option value="video">Video</option>
+                                    <option value="download">Download</option>
+                                    <option value="link">Link</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3"><label>Category</label><input type="text" class="form-control" id="resourceCategory" placeholder="Quran, Hadith, Lectures..."></div>
+                            <div class="col-md-6 mb-3"><label>URL</label><input type="url" class="form-control" id="resourceUrl" placeholder="https://..."></div>
+                            <div class="col-md-6 mb-3">
+                                <label>Upload File</label>
+                                <input type="file" class="form-control" id="resourceFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mp3,.wav">
+                                <small class="text-muted">Use either a URL or upload a file.</small>
+                            </div>
+                            <div class="col-12 mb-3"><label>Description</label><textarea class="form-control" id="resourceDescription" rows="3"></textarea></div>
+                        </div>
+                        <button class="btn btn-success" onclick="addResource()"><i class="fas fa-save"></i> Add Resource</button>
+                    </div>
+                    <h4 style="margin-top: 30px;"><i class="fas fa-list"></i> Resources</h4>
+                    <div id="resourcesList"></div>
+                </div>
+            </div>
+
             <div id="hadithsView" class="admin-content">
                 <div class="content-card">
                     <div class="form-section">
@@ -464,6 +645,6 @@
     <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="admin.js?v=e837ac1"></script>
+    <script src="admin.js?v=resource-upload-20260507"></script>
 </body>
 </html>

@@ -10,8 +10,37 @@ let payments = [];
 let leadershipRoles = [];
 let allMembers = [];
 let allEvents = [];
+let loginFailedAttempts = 0;
+let loginLockedUntil = 0;
+const paymentAccounts = {
+    mpesaStk: {
+        label: 'M-Pesa STK Push',
+        html: '<strong>M-Pesa STK Push:</strong><br>Enter your M-Pesa phone number, then check your phone for the Safaricom PIN prompt. Receipt is generated only after M-Pesa confirms success.'
+    },
+    bankTransfer: {
+        label: 'Bank Transfer',
+        html: '<strong>Bank Transfer:</strong><br>Bank Name: COMMUJ Official Bank<br>Account Name: COMMUJ Association<br>Account Number: 1234567890<br>After transfer, keep your transaction reference for confirmation.'
+    },
+    numberTransfer: {
+        label: 'Normal Transfer Number',
+        html: '<strong>Normal Transfer:</strong><br>Send the money to: 0700000000<br>Receiver Name: COMMUJ Treasurer<br>Use your full name as the transfer narration.'
+    },
+    cash: {
+        label: 'Cash Payment',
+        html: '<strong>Cash Payment:</strong><br>Pay physically to the COMMUJ Treasurer or Finance Officer and collect/keep your receipt.'
+    }
+};
 
-const frontendOnly = true;
+const XAMPP_BASE_URL = 'http://localhost/comahs/';
+const frontendOnly = false;
+const realAppFetch = window.fetch.bind(window);
+
+window.fetch = function(resource, options = {}) {
+    if (location.protocol === 'file:' && typeof resource === 'string' && /^(api|admin_api|commuj|mpesa_api)\.php/.test(resource)) {
+        return realAppFetch(XAMPP_BASE_URL + resource, options);
+    }
+    return realAppFetch(resource, options);
+};
 
 function readList(key) {
     return JSON.parse(localStorage.getItem(key)) || [];
@@ -23,6 +52,14 @@ function getStaticApiData(action) {
             return { success: true, data: readList('publicLeaders') };
         case 'getGallery':
             return { success: true, data: readList('galleryItems') };
+        case 'getAnnouncements':
+            return { success: true, data: readList('adminAnnouncements') };
+        case 'getEvents':
+            return { success: true, data: readList('adminEvents') };
+        case 'getPrayerTimes':
+            return { success: true, data: JSON.parse(localStorage.getItem('adminPrayerTimes')) || null };
+        case 'getResources':
+            return { success: true, data: readList('adminResources') };
         case 'getAllHadiths':
             return { success: true, data: readList('adminHadiths') };
         case 'getDailyHadith': {
@@ -402,6 +439,13 @@ function getRegisteredUser(identifier) {
 function handleLogin(e) {
     e.preventDefault();
 
+    const now = Date.now();
+    if (loginLockedUntil > now) {
+        const secondsLeft = Math.ceil((loginLockedUntil - now) / 1000);
+        alert(`Too many failed login attempts. Please wait ${secondsLeft} seconds before trying again.`);
+        return;
+    }
+
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const role = document.getElementById('userRole').value;
@@ -413,20 +457,22 @@ function handleLogin(e) {
 
     const user = getRegisteredUser(username);
     if (!user) {
-        alert('No registered account found. Please register first.');
+        recordFailedLoginAttempt('No registered account found. Please register first.');
         return;
     }
 
     if (user.password !== password) {
-        alert('Invalid password.');
+        recordFailedLoginAttempt('Invalid password.');
         return;
     }
 
     if (user.role !== role) {
-        alert('Role mismatch. Please login with the role you registered as: ' + (user.role || 'student') + '.');
+        recordFailedLoginAttempt('Role mismatch. Please login with the role you registered as: ' + (user.role || 'student') + '.');
         return;
     }
 
+    loginFailedAttempts = 0;
+    loginLockedUntil = 0;
     currentUser = user;
     currentRole = role;
 
@@ -435,6 +481,36 @@ function handleLogin(e) {
 
     document.getElementById('loginForm').reset();
     showDashboard();
+}
+
+function recordFailedLoginAttempt(message) {
+    loginFailedAttempts += 1;
+
+    if (loginFailedAttempts >= 3) {
+        loginLockedUntil = Date.now() + 10000;
+        loginFailedAttempts = 0;
+        alert(`${message}\nToo many failed attempts. Please wait 10 seconds before trying again.`);
+        updateLoginLockoutButton();
+        return;
+    }
+
+    alert(`${message}\nAttempt ${loginFailedAttempts} of 3.`);
+}
+
+function updateLoginLockoutButton() {
+    const button = document.getElementById('loginSubmitBtn');
+    if (!button) return;
+
+    const remaining = Math.ceil((loginLockedUntil - Date.now()) / 1000);
+    if (remaining <= 0) {
+        button.disabled = false;
+        button.textContent = 'Login';
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = `Wait ${remaining}s`;
+    setTimeout(updateLoginLockoutButton, 250);
 }
 
 function handleRegistration(e) {
@@ -486,12 +562,82 @@ function handleRegistration(e) {
         passportPhoto: document.getElementById('passportPhoto').value ? document.getElementById('passportPhoto').value.split('\\').pop() : ''
     };
 
+    if (!frontendOnly) {
+        saveRegistrationToDatabase(newUser, fullName, password)
+            .then(savedUser => completeLocalRegistration(savedUser))
+            .catch(error => {
+                console.error('Registration database error:', error);
+                alert(error.message || 'Registration could not be saved to the database.');
+            });
+        return;
+    }
+
+    completeLocalRegistration(newUser);
+}
+
+function completeLocalRegistration(newUser) {
     allMembers.push(newUser);
     localStorage.setItem('allMembers', JSON.stringify(allMembers));
 
     alert('Registration successful! Please login using the role you registered with.');
     document.getElementById('registrationForm').reset();
     document.querySelector('[data-bs-target="#loginTab"]').click();
+}
+
+function saveRegistrationToDatabase(newUser, fullName, password) {
+    const [firstName, ...lastNameParts] = fullName.split(' ');
+    const lastName = lastNameParts.join(' ') || '-';
+
+    return fetch('api.php?action=registerUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: newUser.studentId,
+            email: newUser.email,
+            password: password,
+            role: newUser.role
+        })
+    })
+    .then(response => response.json())
+    .then(userResult => {
+        if (!userResult.success) {
+            throw new Error(userResult.message || 'Could not create user in database');
+        }
+        const userId = userResult.data.user_id;
+        return fetch('api.php?action=registerStudent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                first_name: firstName || fullName,
+                last_name: lastName,
+                student_id: newUser.studentId,
+                email: newUser.email,
+                phone: newUser.phone,
+                gender: newUser.gender,
+                nationality: newUser.nationality,
+                course: newUser.course,
+                year_of_study: newUser.yearOfStudy,
+                degree_type: newUser.degreeType,
+                home_address: newUser.homeAddress,
+                emergency_contact: newUser.emergencyContact,
+                emergency_contact_phone: '',
+                local_guardian: newUser.localGuardian,
+                local_guardian_phone: ''
+            })
+        })
+        .then(response => response.json())
+        .then(studentResult => {
+            if (!studentResult.success) {
+                throw new Error(studentResult.message || 'Could not create student record in database');
+            }
+            return {
+                ...newUser,
+                dbUserId: userId,
+                dbStudentId: studentResult.data.student_id
+            };
+        });
+    });
 }
 
 function handleForgotPassword(e) {
@@ -534,12 +680,6 @@ function showDashboard() {
     document.getElementById('dashboardPage').classList.add('active');
     document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
 
-    if (currentRole === 'executive' || currentRole === 'admin') {
-        document.getElementById('adminMenu').style.display = 'block';
-    } else {
-        document.getElementById('adminMenu').style.display = 'none';
-    }
-
     switchView('dashboard');
     setTimeout(() => {
         loadDashboardData();
@@ -549,10 +689,10 @@ function showDashboard() {
 
 // VIEW SWITCHING
 function switchView(viewName) {
-    // Role-based access control
-    const adminViews = ['memberDatabase', 'adminEvents', 'adminWelfare', 'leadership', 'reports'];
-    if (adminViews.includes(viewName) && currentRole !== 'executive' && currentRole !== 'admin') {
-        alert('Access denied. Admin privileges required.');
+    const adminViews = ['memberDatabase', 'adminEvents', 'adminWelfare', 'leadership', 'reports', 'adminGallery', 'adminContact'];
+    if (adminViews.includes(viewName)) {
+        alert('Please use admin.html for admin panel features.');
+        switchView('dashboard');
         return;
     }
 
@@ -658,7 +798,120 @@ function loadProfileData() {
 }
 
 function editProfile() {
-    alert('Profile editing feature will be available soon.');
+    const profileData = currentUser || {};
+    document.getElementById('editFullName').value = profileData.fullName || profileData.name || '';
+    document.getElementById('editStudentId').value = profileData.studentId || profileData.username || '';
+    document.getElementById('editEmail').value = profileData.email || '';
+    document.getElementById('editPhone').value = profileData.phone || '';
+    document.getElementById('editDegreeType').value = profileData.degreeType || 'degree';
+    document.getElementById('editCourse').value = profileData.course || '';
+    document.getElementById('editYearOfStudy').value = profileData.yearOfStudy || '';
+    document.getElementById('editGender').value = profileData.gender || 'male';
+    document.getElementById('editNationality').value = profileData.nationality || '';
+    document.getElementById('editEmergencyContact').value = profileData.emergencyContact || '';
+    document.getElementById('editLocalGuardian').value = profileData.localGuardian || '';
+    document.getElementById('editHomeAddress').value = profileData.homeAddress || '';
+
+    const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+    modal.show();
+}
+
+function saveProfileChanges() {
+    const fullName = document.getElementById('editFullName').value.trim();
+    const studentId = document.getElementById('editStudentId').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const phone = document.getElementById('editPhone').value.trim();
+
+    if (!fullName || !studentId || !email || !phone) {
+        alert('Please fill in full name, student ID, email, and phone.');
+        return;
+    }
+
+    const updatedProfile = {
+        ...currentUser,
+        name: fullName,
+        fullName: fullName,
+        studentId: studentId,
+        username: currentUser?.username || studentId,
+        email: email,
+        phone: phone,
+        degreeType: document.getElementById('editDegreeType').value,
+        course: document.getElementById('editCourse').value.trim(),
+        yearOfStudy: document.getElementById('editYearOfStudy').value.trim(),
+        gender: document.getElementById('editGender').value,
+        nationality: document.getElementById('editNationality').value.trim(),
+        emergencyContact: document.getElementById('editEmergencyContact').value.trim(),
+        localGuardian: document.getElementById('editLocalGuardian').value.trim(),
+        homeAddress: document.getElementById('editHomeAddress').value.trim()
+    };
+
+    if (!frontendOnly) {
+        saveProfileToDatabase(updatedProfile)
+            .then(() => completeProfileSave(updatedProfile))
+            .catch(error => {
+                console.error('Profile update error:', error);
+                alert(error.message || 'Profile could not be saved to the database.');
+            });
+        return;
+    }
+
+    completeProfileSave(updatedProfile);
+}
+
+function saveProfileToDatabase(profile) {
+    const [firstName, ...lastParts] = profile.fullName.split(/\s+/);
+    return getCurrentStudentId()
+        .then(studentDbId => fetch('api.php?action=updateStudentProfile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_db_id: studentDbId,
+                first_name: firstName || profile.fullName,
+                last_name: lastParts.join(' ') || '-',
+                student_id: profile.studentId,
+                email: profile.email,
+                phone: profile.phone,
+                degree_type: profile.degreeType,
+                course: profile.course,
+                year_of_study: profile.yearOfStudy,
+                gender: profile.gender,
+                nationality: profile.nationality,
+                emergency_contact: profile.emergencyContact,
+                local_guardian: profile.localGuardian,
+                home_address: profile.homeAddress
+            })
+        }))
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not update profile');
+            }
+            return result;
+        });
+}
+
+function completeProfileSave(updatedProfile) {
+    currentUser = updatedProfile;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    localStorage.setItem('profileData', JSON.stringify(currentUser));
+
+    allMembers = allMembers.map(member => {
+        const sameMember = member.studentId === updatedProfile.studentId ||
+            member.username === updatedProfile.username ||
+            member.email === updatedProfile.email ||
+            member.dbStudentId === updatedProfile.dbStudentId;
+        return sameMember ? { ...member, ...updatedProfile } : member;
+    });
+    localStorage.setItem('allMembers', JSON.stringify(allMembers));
+
+    loadProfileData();
+    const nameDisplay = document.getElementById('userNameDisplay');
+    if (nameDisplay) {
+        nameDisplay.textContent = currentUser.name || currentUser.fullName || currentUser.username;
+    }
+    updateDashboardStats();
+    bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+    showNotification('Profile updated successfully.', 'success');
 }
 
 // MEMBERSHIP
@@ -693,35 +946,48 @@ function renewMembership() {
 
 // PRAYER TIMES
 function loadPrayerTimes() {
-    const prayerTimes = [
-        { name: 'Fajr', time: '5:30 AM' },
-        { name: 'Dhuhr', time: '1:15 PM' },
-        { name: 'Asr', time: '4:45 PM' },
-        { name: 'Maghrib', time: '7:20 PM' },
-        { name: 'Isha', time: '9:00 PM' },
-        { name: 'Jumu\'ah', time: '1:30 PM (Friday)' }
-    ];
-
     const container = document.getElementById('prayerTimesDetails');
-    if (container) {
-        container.innerHTML = `<div class="row">${prayerTimes.map(prayer => `
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6>${prayer.name}</h6>
-                        <p class="stat-value">${prayer.time}</p>
-                    </div>
-                </div>
+    if (!container) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const prayerRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getPrayerTimes'))
+        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => response.json());
+
+    prayerRequest
+    .then(result => {
+        const data = result.data || {};
+        const prayerTimes = [
+            { name: 'Fajr', time: data.fajr },
+            { name: 'Dhuhr', time: data.dhuhr },
+            { name: 'Asr', time: data.asr },
+            { name: 'Maghrib', time: data.maghrib },
+            { name: 'Isha', time: data.isha },
+            { name: 'Jumu\'ah', time: data.jummah_time }
+        ];
+        container.innerHTML = `<div class="prayer-schedule">${prayerTimes.map(prayer => `
+            <div class="prayer-item">
+                <span class="prayer-label">${prayer.name}</span>
+                <span class="prayer-time">${prayer.time || 'Not set'}</span>
             </div>
         `).join('')}</div>`;
-    }
+    })
+    .catch(() => {
+        container.innerHTML = '<p class="text-muted">Prayer timetable has not been added yet.</p>';
+    });
 }
 
 // EVENTS
 function loadEventsData() {
-    renderAvailableEvents();
-    populateEventSelect();
-    updateRegisteredEventsList();
+    loadEventsFromApi().finally(() => {
+        renderAvailableEvents();
+        populateEventSelect();
+        updateRegisteredEventsList();
+        const eventsList = document.getElementById('eventsList');
+        if (eventsList) {
+            eventsList.style.display = '';
+        }
+    });
 }
 
 function getAvailableEvents() {
@@ -729,6 +995,31 @@ function getAvailableEvents() {
         const key = event.id || event.eventId || event.title || event.name;
         return index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === key);
     });
+}
+
+function mergeEvents(events) {
+    allEvents = [...allEvents, ...events].filter((event, index, list) => {
+        const key = event.id || event.eventId || event.title || event.name;
+        return index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === key);
+    });
+}
+
+function loadEventsFromApi() {
+    const eventsRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getEvents'))
+        : fetch('admin_api.php?action=getEvents&limit=100').then(response => response.json());
+
+    return eventsRequest
+        .then(result => {
+            if (result.success && Array.isArray(result.data)) {
+                mergeEvents(result.data);
+            }
+            return allEvents;
+        })
+        .catch(error => {
+            console.log('Event API unavailable, using local data:', error);
+            return allEvents;
+        });
 }
 
 function renderAvailableEvents() {
@@ -816,6 +1107,34 @@ function submitEventRegistration() {
         status: 'Registered'
     };
 
+    if (!frontendOnly && selectedEvent && selectedEvent.id) {
+        getCurrentStudentId()
+        .then(studentId => fetch('api.php?action=registerEvent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_id: selectedEvent.id,
+                student_id: studentId
+            })
+        }))
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not register for event in the database');
+            }
+            saveEventRegistrationLocally(registration);
+        })
+        .catch(error => {
+            console.error('Event registration database error:', error);
+            alert(error.message || 'Event registration could not be saved to the database.');
+        });
+        return;
+    }
+
+    saveEventRegistrationLocally(registration);
+}
+
+function saveEventRegistrationLocally(registration) {
     registeredEvents.push(registration);
     localStorage.setItem('registeredEvents', JSON.stringify(registeredEvents));
 
@@ -863,15 +1182,50 @@ function saveEvent() {
     const eventLocation = document.getElementById('createEventLocation').value;
     const eventDescription = document.getElementById('createEventDescription').value;
 
-    allEvents.push({
+    const eventData = {
         name: eventName,
+        title: eventName,
         date: eventDate,
         time: eventTime,
+        event_date: eventTime ? `${eventDate} ${eventTime}` : eventDate,
         location: eventLocation,
         description: eventDescription,
         createdDate: new Date().toLocaleDateString(),
         status: 'Upcoming'
-    });
+    };
+
+    if (!frontendOnly) {
+        fetch('admin_api.php?action=createEvent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: eventName,
+                description: eventDescription,
+                event_date: eventData.event_date,
+                location: eventLocation,
+                category: 'general',
+                status: 'upcoming',
+                max_participants: 100
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Error creating event');
+            }
+            mergeEvents([eventData]);
+            loadEventsData();
+            alert('Event created successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error creating event. Please try again.', 'danger');
+        });
+        return;
+    }
+
+    allEvents.push(eventData);
 
     localStorage.setItem('allEvents', JSON.stringify(allEvents));
     alert('Event created successfully!');
@@ -903,17 +1257,22 @@ function editEvent(eventName) {
 
 // ANNOUNCEMENTS
 function loadAnnouncements() {
-    const savedAnnouncements = readList('adminAnnouncements').map(ann => ({
-        title: ann.title,
-        text: ann.content,
-        time: ann.created_at ? new Date(ann.created_at).toLocaleDateString() : 'Recently',
-        icon: 'bell'
-    }));
-
-    const announcements = savedAnnouncements;
-
     const container = document.getElementById('announcementsContainer');
-    if (container) {
+    if (!container) return;
+
+    const announcementRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getAnnouncements'))
+        : fetch('admin_api.php?action=getAnnouncements').then(response => response.json());
+
+    announcementRequest
+    .then(result => {
+        const announcements = (result.data || []).map(ann => ({
+            title: ann.title,
+            text: ann.content,
+            time: ann.created_at || ann.published_at ? new Date(ann.created_at || ann.published_at).toLocaleDateString() : 'Recently',
+            icon: 'bell'
+        }));
+
         if (announcements.length === 0) {
             container.innerHTML = '<p class="text-center text-muted">No announcements have been added yet.</p>';
             return;
@@ -930,35 +1289,101 @@ function loadAnnouncements() {
                 </div>
             </div>
         `).join('');
-    }
+    })
+    .catch(error => {
+        console.log('Announcement API unavailable, using local data:', error);
+        const announcements = readList('adminAnnouncements').map(ann => ({
+            title: ann.title,
+            text: ann.content,
+            time: ann.created_at ? new Date(ann.created_at).toLocaleDateString() : 'Recently',
+            icon: 'bell'
+        }));
+
+        if (announcements.length === 0) {
+            container.innerHTML = '<p class="text-center text-muted">No announcements have been added yet.</p>';
+            return;
+        }
+
+        container.innerHTML = announcements.map(ann => `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5><i class="fas fa-${ann.icon}"></i> ${ann.title}</h5>
+                        <small class="text-muted">${ann.time}</small>
+                    </div>
+                    <p>${ann.text}</p>
+                </div>
+            </div>
+        `).join('');
+    });
 }
 
 // RESOURCES
 function loadResources() {
-    const resources = [
-        { title: 'Islamic Books', description: 'Digital collection of Islamic literature', icon: 'book', link: '#' },
-        { title: 'Prayer Guides', description: 'Step-by-step prayer instruction videos', icon: 'video', link: '#' },
-        { title: 'Quran Resources', description: 'Online Quran reading and study materials', icon: 'scroll', link: '#' },
-        { title: 'Hadith Collection', description: 'Authentic Hadith compilations', icon: 'scroll', link: '#' },
-        { title: 'Islamic Articles', description: 'Curated articles on Islamic topics', icon: 'newspaper', link: '#' },
-        { title: 'Lectures', description: 'Recorded lectures by Islamic scholars', icon: 'microphone', link: '#' }
-    ];
-
     const container = document.getElementById('resourcesGrid');
-    if (container) {
+    if (!container) return;
+
+    const resourceRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getResources'))
+        : fetch('admin_api.php?action=getResources').then(response => response.json());
+
+    resourceRequest
+    .then(result => {
+        const resources = result.data || [];
+        if (!resources.length) {
+            container.innerHTML = '<p class="text-center text-muted">No resources have been added yet.</p>';
+            return;
+        }
+        window.currentResources = resources;
         container.innerHTML = `<div class="row">${resources.map(res => `
             <div class="col-md-4 mb-3">
                 <div class="card resource-card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-${res.icon} fa-3x mb-3" style="color: var(--primary-color);"></i>
+                        <i class="fas fa-${getResourceIcon(res.resource_type || res.type)} fa-3x mb-3" style="color: var(--primary-color);"></i>
                         <h6>${res.title}</h6>
-                        <p class="text-muted small">${res.description}</p>
-                        <a href="${res.link}" class="btn btn-sm btn-primary">Access</a>
+                        <p class="text-muted small">${res.description || ''}</p>
+                        <button class="btn btn-sm btn-primary" onclick="openResource(${resources.indexOf(res)})">View</button>
                     </div>
                 </div>
             </div>
         `).join('')}</div>`;
+    })
+    .catch(error => {
+        console.error('Resource loading error:', error);
+        container.innerHTML = '<p class="text-center text-danger">Resources could not load. Please open the site through http://localhost/comahs/index.html and try again.</p>';
+    });
+}
+
+function getResourceIcon(type) {
+    if (type === 'video') return 'video';
+    if (type === 'download') return 'download';
+    if (type === 'article') return 'newspaper';
+    return 'link';
+}
+
+function openResource(resourceIndex) {
+    const resource = Array.isArray(window.currentResources) ? window.currentResources[resourceIndex] : null;
+    if (!resource) {
+        alert('Resource was not found. Please refresh and try again.');
+        return;
     }
+
+    const resourceUrl = resource.url || resource.file_path || '';
+    if (resourceUrl) {
+        window.open(resolveAppUrl(resourceUrl), '_blank');
+        return;
+    }
+    alert(`${resource.title}\n\n${resource.description || 'No details available.'}`);
+}
+
+function resolveAppUrl(url) {
+    if (!url) return '';
+    if (/^(https?:|mailto:|tel:|data:|blob:)/i.test(url)) return url;
+    const cleanUrl = url.replace(/^\/+/, '');
+    if (location.protocol === 'file:') {
+        return XAMPP_BASE_URL + cleanUrl;
+    }
+    return cleanUrl;
 }
 
 // WELFARE
@@ -981,15 +1406,47 @@ function submitWelfareRequest() {
         return;
     }
 
-    welfareRequests.push({
+    const request = {
+        id: Date.now(),
         type: type,
         description: description,
         amount: amount || 'Not specified',
         dateSubmitted: new Date().toLocaleDateString(),
         status: 'Pending Review',
-        submittedBy: currentUser.name
-    });
+        submittedBy: currentUser.name || currentUser.fullName || currentUser.username
+    };
 
+    if (!frontendOnly) {
+        getCurrentStudentId()
+        .then(studentId => fetch('api.php?action=createWelfareRequest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: studentId,
+                category: type,
+                description: description,
+                amount: amount || 0
+            })
+        }))
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not save welfare request to database');
+            }
+            saveWelfareRequestLocally(request);
+        })
+        .catch(error => {
+            console.error('Welfare database error:', error);
+            alert(error.message || 'Welfare request could not be saved to the database.');
+        });
+        return;
+    }
+
+    saveWelfareRequestLocally(request);
+}
+
+function saveWelfareRequestLocally(request) {
+    welfareRequests.push(request);
     localStorage.setItem('welfareRequests', JSON.stringify(welfareRequests));
     alert('Welfare request submitted successfully!');
 
@@ -1037,36 +1494,432 @@ function loadDuesData() {
             </div>
         `;
     }
+    renderPaymentStatusSummary();
+    renderPaymentHistory();
+}
+
+function renderPaymentStatusSummary() {
+    const statusContainer = document.getElementById('paymentStatusSummary');
+    const summaryContainer = document.getElementById('paymentSummaryDetails');
+    const completedPayments = payments.filter(payment => payment.status === 'Completed');
+    const totalPaid = completedPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+
+    if (statusContainer) {
+        if (!completedPayments.length) {
+            statusContainer.innerHTML = '<p class="text-muted mb-0">No payment has been made yet.</p>';
+        } else {
+            statusContainer.innerHTML = completedPayments.map(payment => `
+                <div class="payment-status-item">
+                    <p><strong>${formatPaymentType(payment.type)}</strong></p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: 100%">Paid</div>
+                    </div>
+                    <small class="text-muted">Amount: $${payment.amount} | Paid: ${payment.date} | ${payment.paymentMethod || 'Method not specified'}</small>
+                </div>
+            `).join('<hr>');
+        }
+    }
+
+    if (summaryContainer) {
+        summaryContainer.innerHTML = `
+            <table class="table table-borderless">
+                <tr>
+                    <td><strong>Total Due:</strong></td>
+                    <td>${completedPayments.length ? '$0' : 'Not paid yet'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Paid:</strong></td>
+                    <td>$${totalPaid.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td><strong>Next Due Date:</strong></td>
+                    <td>Not set</td>
+                </tr>
+            </table>
+            <button class="btn btn-primary w-100" onclick="showPaymentModal()">Make Payment</button>
+        `;
+    }
+}
+
+function formatPaymentType(type) {
+    const labels = {
+        membershipDues: 'Membership Dues',
+        activityFee: 'Activity Fee',
+        specialEvents: 'Special Events Fee',
+        other: 'Other Payment'
+    };
+    return labels[type] || type || 'Payment';
 }
 
 function showPaymentModal() {
+    updatePaymentInstructions('payment');
     const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
     modal.show();
+}
+
+function normalizeMpesaPhone(phone) {
+    const digits = String(phone || '').replace(/\D/g, '');
+    if (digits.startsWith('254') && digits.length === 12) return digits;
+    if (digits.startsWith('0') && digits.length === 10) return '254' + digits.slice(1);
+    if (digits.startsWith('7') && digits.length === 9) return '254' + digits;
+    return digits;
+}
+
+function updatePaymentInstructions(context) {
+    const selectId = context === 'donation' ? 'donationPaymentMethod' : 'paymentMethod';
+    const boxId = context === 'donation' ? 'donationPaymentInstructions' : 'paymentInstructions';
+    const select = document.getElementById(selectId);
+    const box = document.getElementById(boxId);
+    if (!select || !box) return;
+
+    const phoneGroupId = context === 'donation' ? 'donationMpesaPhoneGroup' : 'paymentMpesaPhoneGroup';
+    const phoneGroup = document.getElementById(phoneGroupId);
+    if (phoneGroup) {
+        phoneGroup.classList.toggle('d-none', select.value !== 'mpesaStk');
+    }
+
+    const account = paymentAccounts[select.value];
+    if (!account) {
+        box.classList.add('d-none');
+        box.innerHTML = '';
+        return;
+    }
+
+    const note = select.value === 'mpesaStk'
+        ? 'Receipt is generated only after Safaricom confirms the M-Pesa payment.'
+        : 'Click Send after entering the amount. A receipt will be generated immediately.';
+    box.innerHTML = `${account.html}<hr class="my-2"><strong>Important:</strong> ${note}`;
+    box.classList.remove('d-none');
 }
 
 function processPayment() {
     const paymentType = document.getElementById('paymentType').value;
     const amount = document.getElementById('paymentAmount').value;
+    const paymentMethod = document.getElementById('paymentMethod').value;
 
-    if (!paymentType || !amount) {
+    if (!paymentType || !amount || !paymentMethod) {
         alert('Please fill in all payment details');
         return;
     }
 
-    payments.push({
+    if (paymentMethod === 'mpesaStk') {
+        startMpesaPayment({
+            source: 'payment',
+            type: paymentType,
+            amount: amount,
+            phone: document.getElementById('paymentMpesaPhone').value
+        });
+        return;
+    }
+
+    const receiptNumber = 'RCP' + Date.now();
+    const payment = {
         type: paymentType,
         amount: amount,
         date: new Date().toLocaleDateString(),
         status: 'Completed',
-        paymentMethod: 'Online',
-        receiptNumber: 'RCP' + Date.now()
-    });
+        paymentMethod: paymentAccounts[paymentMethod].label,
+        transactionRef: receiptNumber,
+        receiptNumber: receiptNumber
+    };
+    if (!frontendOnly) {
+        getCurrentStudentId()
+        .then(studentId => fetch('api.php?action=recordPayment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: studentId,
+                payment_type: paymentType,
+                amount: amount,
+                due_date: new Date().toISOString().slice(0, 10),
+                payment_method: payment.paymentMethod,
+                transaction_id: receiptNumber,
+                notes: 'Student clicked Send Payment. Receipt generated immediately.'
+            })
+        }))
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not save payment to database');
+            }
+            payment.dbPaymentId = result.data.payment_id;
+            return fetch('api.php?action=completePayment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payment_id: payment.dbPaymentId,
+                    transaction_id: receiptNumber
+                })
+            });
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not complete payment in database');
+            }
+            savePaymentLocally(payment);
+        })
+        .catch(error => {
+            console.error('Payment database error:', error);
+            alert(error.message || 'Payment could not be saved to the database.');
+        });
+        return;
+    }
 
+    savePaymentLocally(payment);
+}
+
+function startMpesaPayment(details) {
+    const phone = normalizeMpesaPhone(details.phone);
+    if (!phone || phone.length !== 12 || !phone.startsWith('254')) {
+        alert('Please enter a valid M-Pesa phone number, for example 254712345678.');
+        return;
+    }
+
+    const payload = {
+        source: details.source,
+        amount: details.amount,
+        phone: phone
+    };
+
+    if (details.source === 'payment') {
+        payload.payment_type = details.type;
+    } else {
+        payload.donation_type = details.type;
+        payload.purpose = 'COMMUJ donation';
+        payload.donor_id = currentUser?.dbUserId || 0;
+        payload.donor_name = details.anonymous ? 'Anonymous' : (currentUser?.name || currentUser?.fullName || currentUser?.username || 'Donor');
+        payload.donor_email = currentUser?.email || 'anonymous@commuj.local';
+    }
+
+    const ready = details.source === 'payment'
+        ? getCurrentStudentId().then(studentId => ({ ...payload, student_id: studentId }))
+        : Promise.resolve(payload);
+
+    ready
+        .then(body => fetch('mpesa_api.php?action=initiateStkPush', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        }))
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not start M-Pesa STK Push');
+            }
+
+            const localRecord = {
+                type: details.type,
+                amount: details.amount,
+                date: new Date().toLocaleDateString(),
+                status: 'Pending M-Pesa',
+                paymentMethod: 'M-Pesa STK Push',
+                transactionRef: result.data.checkout_request_id,
+                receiptNumber: '',
+                checkoutRequestId: result.data.checkout_request_id
+            };
+
+            if (details.source === 'payment') {
+                localRecord.dbPaymentId = result.data.payment_id;
+                payments.push(localRecord);
+                localStorage.setItem('payments', JSON.stringify(payments));
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                renderPaymentHistory();
+            } else {
+                localRecord.purpose = 'COMMUJ donation';
+                localRecord.anonymous = details.anonymous;
+                localRecord.donor = payload.donor_name;
+                localRecord.dbDonationId = result.data.donation_id;
+                donations.push(localRecord);
+                localStorage.setItem('donations', JSON.stringify(donations));
+                bootstrap.Modal.getInstance(document.getElementById('donationModal')).hide();
+                renderDonationHistory();
+            }
+
+            alert('STK Push sent. Enter your M-Pesa PIN on your phone. Receipt will appear after Safaricom confirms payment.');
+            pollMpesaStatus(result.data.checkout_request_id, details.source);
+        })
+        .catch(error => {
+            console.error('M-Pesa STK error:', error);
+            alert(error.message || 'M-Pesa STK Push failed.');
+        });
+}
+
+function pollMpesaStatus(checkoutRequestId, source, attempts = 0) {
+    if (attempts > 20) {
+        alert('M-Pesa confirmation is taking longer than expected. Check the admin panel or refresh later.');
+        return;
+    }
+
+    setTimeout(() => {
+        fetch(`mpesa_api.php?action=getTransactionStatus&checkout_request_id=${encodeURIComponent(checkoutRequestId)}`)
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success || !result.data) {
+                    pollMpesaStatus(checkoutRequestId, source, attempts + 1);
+                    return;
+                }
+
+                const tx = result.data;
+                if (tx.status === 'completed') {
+                    markLocalMpesaCompleted(checkoutRequestId, source, tx.mpesa_receipt || tx.transaction_id);
+                    alert('M-Pesa payment confirmed. Receipt is now available.');
+                    return;
+                }
+
+                if (tx.status === 'failed') {
+                    markLocalMpesaFailed(checkoutRequestId, source);
+                    alert('M-Pesa payment was not completed.');
+                    return;
+                }
+
+                pollMpesaStatus(checkoutRequestId, source, attempts + 1);
+            })
+            .catch(() => pollMpesaStatus(checkoutRequestId, source, attempts + 1));
+    }, 3000);
+}
+
+function markLocalMpesaCompleted(checkoutRequestId, source, receiptNumber) {
+    const updateRecord = record => record.checkoutRequestId === checkoutRequestId
+        ? { ...record, status: 'Completed', receiptNumber: receiptNumber || ('MPESA-' + Date.now()), transactionRef: receiptNumber || checkoutRequestId }
+        : record;
+
+    if (source === 'payment') {
+        payments = payments.map(updateRecord);
+        localStorage.setItem('payments', JSON.stringify(payments));
+        renderPaymentStatusSummary();
+        renderPaymentHistory();
+    } else {
+        donations = donations.map(updateRecord);
+        localStorage.setItem('donations', JSON.stringify(donations));
+        renderDonationHistory();
+    }
+}
+
+function markLocalMpesaFailed(checkoutRequestId, source) {
+    const updateRecord = record => record.checkoutRequestId === checkoutRequestId ? { ...record, status: 'Failed' } : record;
+    if (source === 'payment') {
+        payments = payments.map(updateRecord);
+        localStorage.setItem('payments', JSON.stringify(payments));
+        renderPaymentHistory();
+    } else {
+        donations = donations.map(updateRecord);
+        localStorage.setItem('donations', JSON.stringify(donations));
+        renderDonationHistory();
+    }
+}
+
+function savePaymentLocally(payment) {
+    payments.push(payment);
     localStorage.setItem('payments', JSON.stringify(payments));
-    alert('Payment processed successfully! Amount: $' + amount);
+    alert('Payment sent successfully. Receipt is now available.');
 
     document.getElementById('paymentForm').reset();
+    updatePaymentInstructions('payment');
     bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+    renderPaymentStatusSummary();
+    renderPaymentHistory();
+}
+
+function getCurrentStudentId() {
+    if (currentUser?.dbStudentId) {
+        return Promise.resolve(currentUser.dbStudentId);
+    }
+
+    const identifier = currentUser?.studentId || currentUser?.email || currentUser?.username;
+    if (!identifier) {
+        return Promise.reject(new Error('Student record is missing. Please register/login again.'));
+    }
+
+    return fetch(`api.php?action=getStudentByIdentifier&identifier=${encodeURIComponent(identifier)}`)
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success || !result.data?.id) {
+                return ensureCurrentUserStudentRecord();
+            }
+            currentUser.dbStudentId = result.data.id;
+            currentUser.dbUserId = result.data.user_id;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            return result.data.id;
+        });
+}
+
+function ensureCurrentUserStudentRecord() {
+    return fetch('api.php?action=ensureStudentRecord', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: currentUser?.username || currentUser?.studentId || currentUser?.email,
+            student_id: currentUser?.studentId || currentUser?.username,
+            email: currentUser?.email,
+            password: currentUser?.password,
+            role: currentUser?.role || currentRole || 'student',
+            full_name: currentUser?.fullName || currentUser?.name || currentUser?.username,
+            phone: currentUser?.phone,
+            gender: currentUser?.gender,
+            nationality: currentUser?.nationality,
+            course: currentUser?.course,
+            year_of_study: currentUser?.yearOfStudy,
+            degree_type: currentUser?.degreeType,
+            home_address: currentUser?.homeAddress,
+            emergency_contact: currentUser?.emergencyContact,
+            local_guardian: currentUser?.localGuardian
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (!result.success || !result.data?.student_id) {
+            throw new Error(result.message || 'Could not create student record in the database.');
+        }
+        currentUser.dbStudentId = result.data.student_id;
+        currentUser.dbUserId = result.data.user_id;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        return result.data.student_id;
+    });
+}
+
+function renderPaymentHistory() {
+    const tbody = document.getElementById('paymentHistoryList');
+    if (!tbody) return;
+
+    if (payments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No payments made yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = payments.map((payment, index) => `
+        <tr>
+            <td>${payment.date}</td>
+            <td>${formatPaymentType(payment.type)}</td>
+            <td>$${payment.amount}</td>
+            <td>${payment.paymentMethod || 'Not specified'}</td>
+            <td><span class="badge ${payment.status === 'Completed' ? 'bg-success' : 'bg-warning text-dark'}">${payment.status}</span></td>
+            <td>${payment.status === 'Completed' ? `<button class="btn btn-sm btn-outline-primary" onclick="downloadReceipt(${index})">Download</button>` : '<span class="text-muted">Pending approval</span>'}</td>
+        </tr>
+    `).join('');
+}
+
+function downloadReceipt(index) {
+    const payment = payments[index];
+    if (!payment) return;
+    const userName = currentUser?.fullName || currentUser?.name || currentUser?.username || 'Member';
+    const receipt = [
+        'COMMUJ Payment Receipt',
+        '----------------------',
+        `Receipt No: ${payment.receiptNumber}`,
+        `Name: ${userName}`,
+        `Payment Type: ${payment.type}`,
+        `Amount: $${payment.amount}`,
+        `Method: ${payment.paymentMethod || 'Online'}`,
+        `Status: ${payment.status}`,
+        `Date: ${payment.date}`
+    ].join('\n');
+    const blob = new Blob([receipt], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${payment.receiptNumber}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 }
 
 // DONATIONS
@@ -1092,36 +1945,137 @@ function loadDonationsData() {
             </div>
         `).join('');
     }
+    renderDonationHistory();
 }
 
 function showDonationModal(donationType) {
     document.getElementById('donationModalTitle').textContent = 'Make ' + donationType + ' Donation';
+    updatePaymentInstructions('donation');
     const modal = new bootstrap.Modal(document.getElementById('donationModal'));
     modal.show();
 }
 
 function submitDonation() {
     const amount = document.getElementById('donationAmount').value;
+    const paymentMethod = document.getElementById('donationPaymentMethod').value;
     const isAnonymous = document.getElementById('anonymousDonation').checked;
 
-    if (!amount) {
-        alert('Please enter a donation amount');
+    if (!amount || !paymentMethod) {
+        alert('Please enter the donation amount and payment method');
         return;
     }
 
-    donations.push({
+    if (paymentMethod === 'mpesaStk') {
+        startMpesaPayment({
+            source: 'donation',
+            type: document.getElementById('donationModalTitle').textContent.replace('Make ', '').replace(' Donation', ''),
+            amount: amount,
+            phone: document.getElementById('donationMpesaPhone').value,
+            anonymous: isAnonymous
+        });
+        return;
+    }
+
+    const receiptNumber = 'DRT' + Date.now();
+    const donation = {
+        type: document.getElementById('donationModalTitle').textContent.replace('Make ', '').replace(' Donation', ''),
+        purpose: 'COMMUJ donation',
         amount: amount,
         date: new Date().toLocaleDateString(),
+        paymentMethod: paymentAccounts[paymentMethod].label,
+        transactionRef: receiptNumber,
+        status: 'Completed',
         anonymous: isAnonymous,
-        donor: isAnonymous ? 'Anonymous' : currentUser.name,
-        receiptNumber: 'DRT' + Date.now()
-    });
+        donor: isAnonymous ? 'Anonymous' : (currentUser.name || currentUser.fullName || currentUser.username),
+        receiptNumber: receiptNumber
+    };
 
+    if (!frontendOnly) {
+        fetch('api.php?action=recordDonation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                donor_id: currentUser?.dbUserId || 0,
+                donor_name: donation.donor,
+                donor_email: currentUser?.email || 'anonymous@commuj.local',
+                amount: amount,
+                donation_type: donation.type,
+                purpose: donation.purpose,
+                payment_method: donation.paymentMethod,
+                transaction_id: receiptNumber
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Could not save donation to database');
+            }
+            donation.dbDonationId = result.data.donation_id;
+            saveDonationLocally(donation);
+        })
+        .catch(error => {
+            console.error('Donation database error:', error);
+            alert(error.message || 'Donation could not be saved to the database.');
+        });
+        return;
+    }
+
+    saveDonationLocally(donation);
+}
+
+function saveDonationLocally(donation) {
+    donations.push(donation);
     localStorage.setItem('donations', JSON.stringify(donations));
-    alert('Thank you for your donation of $' + amount + '!');
+    alert('Donation sent successfully. Receipt is now available.');
 
     document.getElementById('donationForm').reset();
+    updatePaymentInstructions('donation');
     bootstrap.Modal.getInstance(document.getElementById('donationModal')).hide();
+    renderDonationHistory();
+}
+
+function renderDonationHistory() {
+    const tbody = document.getElementById('donationHistoryList');
+    if (!tbody) return;
+
+    if (donations.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No donations made yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = donations.map((donation, index) => `
+        <tr>
+            <td>${donation.date || 'Recently'}</td>
+            <td>${donation.type || 'Donation'}</td>
+            <td>$${donation.amount}</td>
+            <td>${donation.purpose || 'COMMUJ donation'}</td>
+            <td>${donation.paymentMethod || 'Not specified'}</td>
+            <td>${donation.status === 'Completed' ? `<button class="btn btn-sm btn-outline-primary" onclick="downloadDonationReceipt(${index})">Download</button>` : '<span class="text-muted">Pending approval</span>'}</td>
+        </tr>
+    `).join('');
+}
+
+function downloadDonationReceipt(index) {
+    const donation = donations[index];
+    if (!donation) return;
+    const userName = donation.donor || currentUser?.fullName || currentUser?.name || currentUser?.username || 'Donor';
+    const receipt = [
+        'COMMUJ Donation Receipt',
+        '-----------------------',
+        `Receipt No: ${donation.receiptNumber}`,
+        `Donor: ${userName}`,
+        `Donation Type: ${donation.type || 'Donation'}`,
+        `Purpose: ${donation.purpose || 'COMMUJ donation'}`,
+        `Payment Method: ${donation.paymentMethod || 'Not specified'}`,
+        `Amount: $${donation.amount}`,
+        `Date: ${donation.date || new Date().toLocaleDateString()}`
+    ].join('\n');
+    const blob = new Blob([receipt], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${donation.receiptNumber || 'donation-receipt'}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 }
 
 // ADMIN FUNCTIONS
@@ -1182,12 +2136,10 @@ function editMember(studentId) {
 }
 
 function loadAdminEvents() {
-    const adminEvents = readList('adminEvents');
-    allEvents = [...allEvents, ...adminEvents].filter((event, index, list) =>
-        index === list.findIndex(item => (item.id || item.eventId || item.title || item.name) === (event.id || event.eventId || event.title || event.name))
-    );
-    localStorage.setItem('allEvents', JSON.stringify(allEvents));
+    loadEventsFromApi().finally(() => renderAdminEventsTable());
+}
 
+function renderAdminEventsTable() {
     const tbody = document.getElementById('adminEventsList');
     if (!tbody) return;
 
@@ -1586,8 +2538,9 @@ function loadDashboardData() {
     document.getElementById('duesStatusValue').textContent = duesPaid;
 
     // Welfare Status
-    const welfareCount = welfareRequests.filter(w => w.status === 'Pending').length;
+    const welfareCount = welfareRequests.filter(w => w.status === 'Pending' || w.status === 'Pending Review').length;
     document.getElementById('welfareStatusValue').textContent = welfareCount || '0';
+    loadDashboardPrayerTimes();
 
     // Load Announcements
     const announcementsList = document.getElementById('announcementsList');
@@ -1616,6 +2569,33 @@ function loadDashboardData() {
     if (meetingsList) {
         meetingsList.innerHTML = '<p class="text-center text-muted mb-0">No meetings have been added yet.</p>';
     }
+}
+
+function loadDashboardPrayerTimes() {
+    const container = document.getElementById('prayerTimesList');
+    if (!container) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const prayerRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getPrayerTimes'))
+        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => response.json());
+    prayerRequest.then(result => {
+        const data = result.data || {};
+        const prayers = [
+            ['Fajr', data.fajr],
+            ['Dhuhr', data.dhuhr],
+            ['Asr', data.asr],
+            ['Maghrib', data.maghrib],
+            ['Isha', data.isha]
+        ];
+        container.innerHTML = prayers.map(([name, time]) => `
+            <div class="prayer-time">
+                <span class="prayer-name">${name}</span>
+                <span class="prayer-time-value">${time || 'Not set'}</span>
+            </div>
+        `).join('');
+    }).catch(() => {
+        container.innerHTML = '<p class="text-muted mb-0">Prayer times have not been added yet.</p>';
+    });
 }
 
 // TOGGLE/COLLAPSE FUNCTIONS FOR HIDING/SHOWING FEATURES
@@ -1720,10 +2700,6 @@ let hadithsLoaded = false;
 
 // Initialize Hadiths on Dashboard Load
 function initializeHadiths() {
-    if (allHadiths.length === 0) {
-        loadLocalHadiths();
-    }
-
     Promise.all([loadAllHadiths(), loadDailyHadith()]).catch(() => {
         console.warn('Hadith initialization encountered an issue.');
     });
@@ -1746,8 +2722,8 @@ function loadAllHadiths() {
             throw new Error('Invalid hadith list returned');
         })
         .catch(error => {
-            console.log('Hadith API unavailable, using local hadiths:', error);
-            loadLocalHadiths();
+            console.log('Hadith API unavailable or no hadiths added:', error);
+            allHadiths = [];
             hadithsLoaded = true;
             return allHadiths;
         });
@@ -1773,14 +2749,15 @@ function loadDailyHadith() {
             throw new Error('Invalid daily hadith returned');
         })
         .catch(error => {
-            console.log('Daily hadith API unavailable, using local hadith:', error);
+            console.log('Daily hadith API unavailable or no hadith added:', error);
             if (allHadiths.length > 0) {
                 const today = new Date().getDate();
                 currentHadithIndex = today % allHadiths.length;
                 displayHadith(allHadiths[currentHadithIndex], currentHadithIndex + 1, allHadiths.length);
                 hadithsLoaded = true;
             } else {
-                loadLocalHadiths();
+                displayHadith(null, 0, 0);
+                hadithsLoaded = true;
             }
             return null;
         });
@@ -1794,8 +2771,18 @@ function displayHadith(hadith, position, total) {
     const counterElement = document.getElementById('hadithCounter');
     const totalElement = document.getElementById('hadithTotal');
 
+    if (!hadith) {
+        if (textElement) textElement.textContent = 'No hadith has been added yet.';
+        if (referenceElement) referenceElement.textContent = '';
+        if (translationElement) translationElement.textContent = '';
+        if (counterElement) counterElement.textContent = '0';
+        if (totalElement) totalElement.textContent = '0';
+        currentHadithIndex = 0;
+        return;
+    }
+
     if (textElement) {
-        textElement.innerHTML = hadith.arabic || 'Hadith not found';
+        textElement.textContent = hadith.arabic || 'Hadith not found';
         textElement.style.animation = 'none';
         setTimeout(() => {
             textElement.style.animation = 'welcomeFadeInScale 0.6s ease-out';
@@ -1807,7 +2794,7 @@ function displayHadith(hadith, position, total) {
     }
 
     if (translationElement) {
-        translationElement.innerHTML = `<strong>Translation:</strong> ${hadith.english || 'Translation not available'}`;
+        translationElement.textContent = hadith.english ? `Translation: ${hadith.english}` : 'Translation not available';
     }
 
     if (counterElement) {
@@ -1845,35 +2832,11 @@ function previousHadith() {
     displayHadith(allHadiths[currentHadithIndex], currentHadithIndex + 1, allHadiths.length);
 }
 
-// Load hadiths locally if PHP is not available
+// Keep the user view empty until admins add hadiths.
 function loadLocalHadiths() {
-    allHadiths = [
-        {
-            id: 1,
-            arabic: '?? ??? ????? ??? ???? ??? ???: ??? ???? ???? ??? ???? ???? ????: "?? ??? ???? ????? ??????? ????????? ??? ?? ?? ???? ?? ????"',
-            english: 'Whoever stands (in prayer) during the Night of Power, with faith and hoping for its reward, will have all of their previous sins forgiven.',
-            reference: 'Sahih Bukhari 1901 & Muslim 760',
-            source: 'Prophet Muhammad (Peace Be Upon Him)'
-        },
-        {
-            id: 2,
-            arabic: '?? ??? ????? ?? ???? ???? ??? ???? ???? ???? ???: "?????? ???? ?????? ????? ?????"',
-            english: 'Supplication is the weapon of the believer and the pillar of the religion.',
-            reference: 'Sunan At-Tirmidhi 3373',
-            source: 'Prophet Muhammad (Peace Be Upon Him)'
-        },
-        {
-            id: 3,
-            arabic: '??? ???? ???? ??? ???? ???? ????: "??? ????? ?????? ?????"',
-            english: 'The best of people are those who are most beneficial to others.',
-            reference: 'Sunan Ibn Majah 4106',
-            source: 'Prophet Muhammad (Peace Be Upon Him)'
-        }
-    ];
-
-    const today = new Date().getDate();
-    currentHadithIndex = today % allHadiths.length;
-    displayHadith(allHadiths[currentHadithIndex], currentHadithIndex + 1, allHadiths.length);
+    allHadiths = [];
+    currentHadithIndex = 0;
+    displayHadith(null, 0, 0);
     hadithsLoaded = true;
 }
 
@@ -1947,29 +2910,44 @@ function updateContactInfo(type) {
 
 // GALLERY MANAGEMENT
 function loadAdminGallery() {
-    let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
-
     const galleryList = document.getElementById('galleryItemsList');
     if (!galleryList) return;
 
-    if (galleryItems.length === 0) {
-        galleryList.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No gallery items yet</td></tr>';
-        return;
-    }
+    const galleryRequest = frontendOnly
+        ? Promise.resolve(getStaticApiData('getGallery'))
+        : fetch('admin_api.php?action=getGallery').then(response => response.json());
 
-    galleryList.innerHTML = galleryItems.map((item, index) => `
-        <tr>
-            <td>${item.title}</td>
-            <td>${item.description}</td>
-            <td>${item.imageData ? `<img src="${item.imageData}" alt="${item.title}" style="max-height:80px; max-width:120px; object-fit:cover; border-radius:6px;">` : '<span class="text-muted">No image</span>'}</td>
-            <td><i class="${item.icon}"></i></td>
-            <td>
-                <button class="btn btn-sm btn-danger" onclick="removeGalleryItem(${index})">
-                    <i class="fas fa-trash"></i> Remove
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    galleryRequest
+    .then(result => {
+        let galleryItems = result.data || [];
+
+        if (galleryItems.length === 0) {
+            galleryList.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No gallery items yet</td></tr>';
+            return;
+        }
+
+        galleryList.innerHTML = galleryItems.map((item, index) => {
+            const imageUrl = item.image_url || item.imageData || item.imageUrl || '';
+            const removeId = item.id || index;
+            return `
+                <tr>
+                    <td>${item.title}</td>
+                    <td>${item.description || ''}</td>
+                    <td>${imageUrl ? `<img src="${imageUrl}" alt="${item.title}" style="max-height:80px; max-width:120px; object-fit:cover; border-radius:6px;">` : '<span class="text-muted">No image</span>'}</td>
+                    <td><i class="${item.icon || 'fas fa-images'}"></i></td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="removeGalleryItem(${removeId})">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    })
+    .catch(error => {
+        console.error('Error loading gallery:', error);
+        galleryList.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading gallery items</td></tr>';
+    });
 }
 
 function showAddGalleryModal() {
@@ -2009,6 +2987,37 @@ function saveGalleryItem() {
     const reader = new FileReader();
     reader.onload = function(e) {
         const imageData = e.target.result;
+
+        if (!frontendOnly) {
+            fetch('admin_api.php?action=addGalleryItem', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    image_url: imageData,
+                    uploaded_by: currentUser?.id || 0
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    throw new Error(result.message || 'Error saving gallery item');
+                }
+
+                clearGalleryForm(imageInput);
+                bootstrap.Modal.getInstance(document.getElementById('addGalleryModal')).hide();
+                loadAdminGallery();
+                loadGalleryContent();
+                showNotification('Gallery item added successfully!', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification(error.message || 'Error saving gallery item', 'danger');
+            });
+            return;
+        }
+
         let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
 
         galleryItems.push({
@@ -2020,14 +3029,7 @@ function saveGalleryItem() {
 
         localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
 
-        // Clear form
-        document.getElementById('galleryTitle').value = '';
-        document.getElementById('galleryDescription').value = '';
-        document.getElementById('galleryIcon').value = '';
-        imageInput.value = '';
-        const preview = document.getElementById('galleryImagePreview');
-        preview.src = '';
-        preview.classList.add('d-none');
+        clearGalleryForm(imageInput);
 
         // Close modal
         bootstrap.Modal.getInstance(document.getElementById('addGalleryModal')).hide();
@@ -2041,8 +3043,40 @@ function saveGalleryItem() {
     reader.readAsDataURL(file);
 }
 
+function clearGalleryForm(imageInput) {
+    document.getElementById('galleryTitle').value = '';
+    document.getElementById('galleryDescription').value = '';
+    document.getElementById('galleryIcon').value = '';
+    imageInput.value = '';
+    const preview = document.getElementById('galleryImagePreview');
+    preview.src = '';
+    preview.classList.add('d-none');
+}
+
 function removeGalleryItem(index) {
     if (!confirm('Are you sure you want to remove this gallery item?')) return;
+
+    if (!frontendOnly) {
+        fetch('admin_api.php?action=deleteGalleryItem', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gallery_id: index })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Error removing gallery item');
+            }
+            loadAdminGallery();
+            loadGalleryContent();
+            showNotification('Gallery item removed!', 'success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification(error.message || 'Error removing gallery item', 'danger');
+        });
+        return;
+    }
 
     let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
     galleryItems.splice(index, 1);

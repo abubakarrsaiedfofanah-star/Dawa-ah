@@ -1,19 +1,11 @@
 <?php
 // COMMUJ Database Configuration and Connection
 
-function getRequiredEnv($name) {
-    $value = getenv($name);
-    if ($value === false || $value === '') {
-        die("Missing required environment variable: {$name}");
-    }
-    return $value;
-}
-
 // Database Configuration
-// Set these values in your hosting environment instead of committing secrets.
+// XAMPP defaults are root with an empty password. Hosting can override with env vars.
 define('DB_HOST', getenv('COMMUJ_DB_HOST') ?: 'localhost');
-define('DB_USER', getRequiredEnv('COMMUJ_DB_USER'));
-define('DB_PASSWORD', getRequiredEnv('COMMUJ_DB_PASSWORD'));
+define('DB_USER', getenv('COMMUJ_DB_USER') ?: 'root');
+define('DB_PASSWORD', getenv('COMMUJ_DB_PASSWORD') ?: '');
 define('DB_NAME', getenv('COMMUJ_DB_NAME') ?: 'commuj_db');
 
 // Create connection
@@ -193,6 +185,28 @@ $sql_donations = "CREATE TABLE IF NOT EXISTS donations (
     FOREIGN KEY (donor_id) REFERENCES users(id) ON DELETE SET NULL
 )";
 
+// MPESA TRANSACTIONS TABLE
+$sql_mpesa_transactions = "CREATE TABLE IF NOT EXISTS mpesa_transactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    checkout_request_id VARCHAR(100) UNIQUE,
+    merchant_request_id VARCHAR(100),
+    account_reference VARCHAR(100),
+    phone VARCHAR(20),
+    amount DECIMAL(10, 2) NOT NULL,
+    source_type ENUM('payment', 'donation') NOT NULL,
+    payment_id INT NULL,
+    donation_id INT NULL,
+    mpesa_receipt VARCHAR(100),
+    result_code INT NULL,
+    result_desc VARCHAR(255),
+    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    callback_payload JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL,
+    FOREIGN KEY (donation_id) REFERENCES donations(id) ON DELETE SET NULL
+)";
+
 // LEADERSHIP_ROLES TABLE
 $sql_leadership = "CREATE TABLE IF NOT EXISTS leadership_roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -318,6 +332,7 @@ $tables = array(
     "welfare_requests" => $sql_welfare,
     "payments" => $sql_payments,
     "donations" => $sql_donations,
+    "mpesa_transactions" => $sql_mpesa_transactions,
     "leadership_roles" => $sql_leadership,
     "hadiths" => $sql_hadiths,
     "volunteer_opportunities" => $sql_volunteer,
@@ -415,6 +430,8 @@ function getLastError() {
 
 // Display database status (for admin/setup page)
 function getDatabaseStatus() {
+    global $created_tables, $failed_tables;
+
     return array(
         'created_tables' => $created_tables,
         'failed_tables' => $failed_tables,

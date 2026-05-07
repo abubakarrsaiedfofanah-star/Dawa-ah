@@ -14,10 +14,17 @@ require_once 'db_operations.php';
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Parse JSON body if POST/PUT
+// Parse JSON body if the request can include one.
 $data = array();
-if ($method === 'POST' || $method === 'PUT') {
-    $data = json_decode(file_get_contents('php://input'), true);
+if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
+    if (!empty($_POST)) {
+        $data = $_POST;
+    } else {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            $data = array();
+        }
+    }
 }
 
 // Response helper
@@ -35,10 +42,45 @@ function respond($success, $message = '', $data = null) {
 // ANNOUNCEMENTS MANAGEMENT
 // ============================================
 
+if ($action === 'getDashboardStats' && $method === 'GET') {
+    respond(true, 'Dashboard stats retrieved', getAdminDashboardStats());
+}
+
+if ($action === 'getDashboardDetail' && $method === 'GET') {
+    $type = isset($_GET['type']) ? $_GET['type'] : '';
+    $result = getAdminDashboardDetail($type);
+    respond($result['success'], $result['success'] ? 'Dashboard detail retrieved' : $result['error'], $result);
+}
+
+if ($action === 'approvePayment' && $method === 'POST') {
+    $payment_id = isset($data['payment_id']) ? intval($data['payment_id']) : 0;
+    if ($payment_id === 0) {
+        respond(false, 'Payment ID required');
+    }
+    $transaction_id = 'ADMIN-PAY-' . $payment_id . '-' . time();
+    $result = completePayment($payment_id, $transaction_id);
+    respond($result['success'], $result['success'] ? 'Payment approved' : $result['error'], $result);
+}
+
+if ($action === 'approveDonation' && $method === 'POST') {
+    $donation_id = isset($data['donation_id']) ? intval($data['donation_id']) : 0;
+    if ($donation_id === 0) {
+        respond(false, 'Donation ID required');
+    }
+    $transaction_id = 'ADMIN-DON-' . $donation_id . '-' . time();
+    $result = completeDonation($donation_id, $transaction_id);
+    respond($result['success'], $result['success'] ? 'Donation approved' : $result['error'], $result);
+}
+
+if ($action === 'seedSampleData' && $method === 'POST') {
+    $result = seedAdminSampleData();
+    respond($result['success'], $result['success'] ? 'Sample database records added' : 'Error adding sample records', $result);
+}
+
 if ($action === 'createAnnouncement' && $method === 'POST') {
     $title = isset($data['title']) ? $data['title'] : '';
     $content = isset($data['content']) ? $data['content'] : '';
-    $author_id = isset($data['author_id']) ? $data['author_id'] : '';
+    $author_id = isset($data['author_id']) ? intval($data['author_id']) : 0;
     $priority = isset($data['priority']) ? $data['priority'] : 'normal';
     $expires_at = isset($data['expires_at']) ? $data['expires_at'] : null;
     
@@ -76,7 +118,7 @@ if ($action === 'createEvent' && $method === 'POST') {
     $event_date = isset($data['event_date']) ? $data['event_date'] : '';
     $location = isset($data['location']) ? $data['location'] : '';
     $organizer_id = isset($data['organizer_id']) ? $data['organizer_id'] : '';
-    $capacity = isset($data['capacity']) ? intval($data['capacity']) : null;
+    $capacity = isset($data['max_participants']) ? intval($data['max_participants']) : (isset($data['capacity']) ? intval($data['capacity']) : 100);
     
     if (empty($title) || empty($description) || empty($event_date)) {
         respond(false, 'Title, description, and date are required');
@@ -87,8 +129,10 @@ if ($action === 'createEvent' && $method === 'POST') {
         'description' => $description,
         'event_date' => $event_date,
         'location' => $location,
+        'category' => isset($data['category']) ? $data['category'] : 'general',
         'organizer_id' => $organizer_id,
-        'capacity' => $capacity
+        'status' => isset($data['status']) ? $data['status'] : 'upcoming',
+        'max_participants' => $capacity
     ];
     
     $result = createEvent($event_data);
@@ -99,6 +143,11 @@ if ($action === 'getEvents' && $method === 'GET') {
     $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
     $events = getUpcomingEvents($limit);
     respond(true, 'Events retrieved', $events);
+}
+
+if ($action === 'getEventRegistrations' && $method === 'GET') {
+    $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : 0;
+    respond(true, 'Event registrations retrieved', getEventRegistrations($event_id));
 }
 
 if ($action === 'deleteEvent' && $method === 'DELETE') {
@@ -177,6 +226,14 @@ if ($action === 'addGalleryItem' && $method === 'POST') {
     if (empty($title) || empty($image_url)) {
         respond(false, 'Title and image URL are required');
     }
+
+    if (strpos($image_url, 'data:image/') === 0) {
+        $saved_image = saveGalleryDataImage($image_url);
+        if (!$saved_image['success']) {
+            respond(false, $saved_image['error']);
+        }
+        $image_url = $saved_image['path'];
+    }
     
     $gallery_data = [
         'title' => $title,
@@ -187,6 +244,41 @@ if ($action === 'addGalleryItem' && $method === 'POST') {
     
     $result = addGalleryItem($gallery_data);
     respond($result['success'], $result['success'] ? 'Gallery item added' : 'Error adding gallery item', $result);
+}
+
+function saveGalleryDataImage($data_url) {
+    if (!preg_match('/^data:image\/(png|jpe?g|gif|webp);base64,/', $data_url, $matches)) {
+        return ['success' => false, 'error' => 'Unsupported image format'];
+    }
+
+    $extension = strtolower($matches[1]);
+    if ($extension === 'jpeg') {
+        $extension = 'jpg';
+    }
+
+    $base64 = substr($data_url, strpos($data_url, ',') + 1);
+    $image_data = base64_decode($base64, true);
+    if ($image_data === false) {
+        return ['success' => false, 'error' => 'Invalid image data'];
+    }
+
+    if (strlen($image_data) > 5 * 1024 * 1024) {
+        return ['success' => false, 'error' => 'Image is too large. Please use an image under 5MB.'];
+    }
+
+    $upload_dir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'gallery';
+    if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, true)) {
+        return ['success' => false, 'error' => 'Could not create gallery upload folder'];
+    }
+
+    $filename = 'gallery_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    $full_path = $upload_dir . DIRECTORY_SEPARATOR . $filename;
+
+    if (file_put_contents($full_path, $image_data) === false) {
+        return ['success' => false, 'error' => 'Could not save image file'];
+    }
+
+    return ['success' => true, 'path' => 'uploads/gallery/' . $filename];
 }
 
 if ($action === 'getGallery' && $method === 'GET') {
@@ -203,6 +295,108 @@ if ($action === 'deleteGalleryItem' && $method === 'DELETE') {
     
     $result = deleteGalleryItem($gallery_id);
     respond($result['success'], $result['success'] ? 'Gallery item deleted' : 'Error deleting gallery item', $result);
+}
+
+// ============================================
+// WELFARE, PRAYER TIMES, RESOURCES
+// ============================================
+
+if ($action === 'getWelfareRequests' && $method === 'GET') {
+    respond(true, 'Welfare requests retrieved', getAllWelfareRequests());
+}
+
+if ($action === 'updateWelfareStatus' && $method === 'POST') {
+    $request_id = isset($data['request_id']) ? intval($data['request_id']) : 0;
+    $status = isset($data['status']) ? $data['status'] : '';
+    $notes = isset($data['notes']) ? $data['notes'] : '';
+    if ($request_id === 0 || empty($status)) {
+        respond(false, 'Request ID and status are required');
+    }
+    $result = updateWelfareStatus($request_id, $status, $notes, isset($data['approved_by']) ? intval($data['approved_by']) : 0);
+    respond($result['success'], $result['success'] ? 'Welfare request updated' : 'Error updating welfare request', $result);
+}
+
+if ($action === 'getPrayerTimes' && $method === 'GET') {
+    $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    respond(true, 'Prayer times retrieved', getPrayerTimes($date));
+}
+
+if ($action === 'setPrayerTimes' && $method === 'POST') {
+    $date = isset($data['date']) ? $data['date'] : date('Y-m-d');
+    $times = [
+        'fajr' => $data['fajr'] ?? null,
+        'dhuhr' => $data['dhuhr'] ?? null,
+        'asr' => $data['asr'] ?? null,
+        'maghrib' => $data['maghrib'] ?? null,
+        'isha' => $data['isha'] ?? null,
+        'iqamah_fajr' => $data['iqamah_fajr'] ?? null,
+        'iqamah_dhuhr' => $data['iqamah_dhuhr'] ?? null,
+        'iqamah_asr' => $data['iqamah_asr'] ?? null,
+        'iqamah_maghrib' => $data['iqamah_maghrib'] ?? null,
+        'iqamah_isha' => $data['iqamah_isha'] ?? null,
+        'jummah_time' => $data['jummah_time'] ?? null
+    ];
+    $result = setPrayerTimes($date, $times);
+    respond($result['success'], $result['success'] ? 'Prayer times saved' : 'Error saving prayer times', $result);
+}
+
+if ($action === 'getResources' && $method === 'GET') {
+    respond(true, 'Resources retrieved', getResources());
+}
+
+if ($action === 'addResource' && $method === 'POST') {
+    $title = isset($data['title']) ? $data['title'] : '';
+    $type = isset($data['resource_type']) ? $data['resource_type'] : (isset($data['type']) ? $data['type'] : '');
+    if (empty($title) || empty($type)) {
+        respond(false, 'Title and resource type are required');
+    }
+    if (isset($_FILES['resource_file']) && $_FILES['resource_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $saved_file = saveResourceUpload($_FILES['resource_file']);
+        if (!$saved_file['success']) {
+            respond(false, $saved_file['error']);
+        }
+        $data['file_path'] = $saved_file['path'];
+        if (empty($data['url'])) {
+            $data['url'] = $saved_file['path'];
+        }
+    }
+    $result = addResource($data);
+    respond($result['success'], $result['success'] ? 'Resource added' : 'Error adding resource', $result);
+}
+
+function saveResourceUpload($file) {
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'error' => 'Resource upload failed'];
+    }
+
+    $allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mp3', 'wav'];
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowed, true)) {
+        return ['success' => false, 'error' => 'This resource file type is not allowed'];
+    }
+
+    $upload_dir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'resources';
+    if (!is_dir($upload_dir) && !mkdir($upload_dir, 0777, true)) {
+        return ['success' => false, 'error' => 'Could not create resource upload folder'];
+    }
+
+    $safe_base = preg_replace('/[^a-zA-Z0-9_-]+/', '-', pathinfo($file['name'], PATHINFO_FILENAME));
+    $filename = 'resource_' . date('Ymd_His') . '_' . ($safe_base ?: 'file') . '.' . $extension;
+    $target = $upload_dir . DIRECTORY_SEPARATOR . $filename;
+    if (!move_uploaded_file($file['tmp_name'], $target)) {
+        return ['success' => false, 'error' => 'Could not save uploaded resource'];
+    }
+
+    return ['success' => true, 'path' => 'uploads/resources/' . $filename];
+}
+
+if ($action === 'deleteResource' && $method === 'DELETE') {
+    $resource_id = isset($data['resource_id']) ? intval($data['resource_id']) : 0;
+    if ($resource_id === 0) {
+        respond(false, 'Resource ID required');
+    }
+    $result = deleteResource($resource_id);
+    respond($result['success'], $result['success'] ? 'Resource deleted' : 'Error deleting resource', $result);
 }
 
 // ============================================

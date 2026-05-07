@@ -106,6 +106,35 @@ if ($action === 'getStudent' && $method === 'GET') {
     }
 }
 
+if ($action === 'getStudentByIdentifier' && $method === 'GET') {
+    $identifier = isset($_GET['identifier']) ? $_GET['identifier'] : '';
+    if (empty($identifier)) {
+        respond(false, 'Identifier required');
+    }
+
+    $student = getStudentByIdentifier($identifier);
+    if ($student) {
+        respond(true, 'Student found', $student);
+    } else {
+        respond(false, 'Student not found');
+    }
+}
+
+if ($action === 'ensureStudentRecord' && $method === 'POST') {
+    $result = ensureStudentRecord($data);
+    respond($result['success'], $result['success'] ? 'Student record ready' : $result['error'], $result);
+}
+
+if ($action === 'updateStudentProfile' && $method === 'POST') {
+    $student_db_id = isset($data['student_db_id']) ? intval($data['student_db_id']) : 0;
+    if ($student_db_id === 0) {
+        respond(false, 'Student database ID required');
+    }
+
+    $result = updateStudentProfile($student_db_id, $data);
+    respond($result['success'], $result['success'] ? 'Profile updated' : $result['error'], $result);
+}
+
 if ($action === 'getAllStudents' && $method === 'GET') {
     $students = getAllStudents();
     respond(true, 'Students retrieved', $students);
@@ -220,12 +249,14 @@ if ($action === 'recordPayment' && $method === 'POST') {
     $amount = isset($data['amount']) ? floatval($data['amount']) : 0;
     $due_date = isset($data['due_date']) ? $data['due_date'] : '';
     $payment_method = isset($data['payment_method']) ? $data['payment_method'] : null;
+    $transaction_id = isset($data['transaction_id']) ? $data['transaction_id'] : null;
+    $notes = isset($data['notes']) ? $data['notes'] : null;
     
-    if ($student_id === 0 || empty($payment_type) || $amount === 0) {
+    if ($student_id === 0 || empty($payment_type) || $amount === 0 || empty($transaction_id)) {
         respond(false, 'Missing required fields');
     }
     
-    $result = recordPayment($student_id, $payment_type, $amount, $due_date, $payment_method);
+    $result = recordPayment($student_id, $payment_type, $amount, $due_date, $payment_method, $transaction_id, $notes);
     respond($result['success'], $result['success'] ? 'Payment recorded' : $result['error'], $result);
 }
 
@@ -252,12 +283,14 @@ if ($action === 'recordDonation' && $method === 'POST') {
     $amount = isset($data['amount']) ? floatval($data['amount']) : 0;
     $donation_type = isset($data['donation_type']) ? $data['donation_type'] : '';
     $purpose = isset($data['purpose']) ? $data['purpose'] : '';
+    $payment_method = isset($data['payment_method']) ? $data['payment_method'] : null;
+    $transaction_id = isset($data['transaction_id']) ? $data['transaction_id'] : null;
     
-    if (empty($donor_name) || empty($donor_email) || $amount === 0) {
+    if (empty($donor_name) || empty($donor_email) || $amount === 0 || empty($transaction_id)) {
         respond(false, 'Missing required fields');
     }
     
-    $result = recordDonation($donor_id, $donor_name, $donor_email, $amount, $donation_type, $purpose);
+    $result = recordDonation($donor_id, $donor_name, $donor_email, $amount, $donation_type, $purpose, $payment_method, $transaction_id);
     respond($result['success'], $result['success'] ? 'Donation recorded' : $result['error'], $result);
 }
 
