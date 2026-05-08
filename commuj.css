@@ -30,11 +30,23 @@ body {
 }
 
 a:not(.btn):not(.nav-link):not(.navbar-brand) {
-    color: var(--primary-color);
+    color: var(--primary-color) !important;
 }
 
 a:not(.btn):not(.nav-link):not(.navbar-brand):hover {
-    color: #a71d2a;
+    color: #a71d2a !important;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    color: #fff !important;
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
 /* AUTHENTICATION */
