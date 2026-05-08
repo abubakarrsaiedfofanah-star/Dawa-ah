@@ -29,6 +29,14 @@ body {
     overflow-x: hidden;
 }
 
+a:not(.btn):not(.nav-link):not(.navbar-brand) {
+    color: var(--primary-color);
+}
+
+a:not(.btn):not(.nav-link):not(.navbar-brand):hover {
+    color: #a71d2a;
+}
+
 /* AUTHENTICATION */
 .landing-page {
     display: none;
