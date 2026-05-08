@@ -12,6 +12,8 @@ const LOCAL_ADMIN_ACCOUNTS_KEY = 'commujAdminAccounts';
 const DEFAULT_ADMIN_USERNAME = 'admin';
 const DEFAULT_ADMIN_EMAIL = 'commuj.admin@commuj.local';
 const DEFAULT_ADMIN_PASSWORD = 'COMMUJAdmin@2026';
+const ADMIN_HASH_ALGORITHM = 'PBKDF2-SHA-256';
+const ADMIN_HASH_ITERATIONS = 150000;
 
 function resolveAdminUrl(url) {
     if (!url) return '';
@@ -258,13 +260,84 @@ function saveLocalAdminAccounts(accounts) {
     localStorage.setItem(LOCAL_ADMIN_ACCOUNTS_KEY, JSON.stringify(accounts));
 }
 
-async function hashAdminPassword(password) {
+function bytesToHex(bytes) {
+    return Array.from(bytes).map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i += 1) {
+        bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    }
+    return bytes;
+}
+
+function createPasswordSalt() {
+    const salt = new Uint8Array(16);
+    if (window.crypto?.getRandomValues) {
+        window.crypto.getRandomValues(salt);
+        return bytesToHex(salt);
+    }
+    for (let i = 0; i < salt.length; i += 1) {
+        salt[i] = Math.floor(Math.random() * 256);
+    }
+    return bytesToHex(salt);
+}
+
+async function legacyHashAdminPassword(password) {
     if (window.crypto?.subtle) {
         const data = new TextEncoder().encode(password);
         const digest = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+        return bytesToHex(new Uint8Array(digest));
     }
     return btoa(unescape(encodeURIComponent(password)));
+}
+
+async function hashAdminPassword(password, salt = createPasswordSalt()) {
+    if (!window.crypto?.subtle) {
+        return {
+            passwordHash: await legacyHashAdminPassword(`${salt}:${password}`),
+            passwordSalt: salt,
+            passwordIterations: 1,
+            passwordAlgorithm: 'SHA-256-FALLBACK'
+        };
+    }
+
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits']
+    );
+    const derivedBits = await crypto.subtle.deriveBits(
+        {
+            name: 'PBKDF2',
+            salt: hexToBytes(salt),
+            iterations: ADMIN_HASH_ITERATIONS,
+            hash: 'SHA-256'
+        },
+        keyMaterial,
+        256
+    );
+
+    return {
+        passwordHash: bytesToHex(new Uint8Array(derivedBits)),
+        passwordSalt: salt,
+        passwordIterations: ADMIN_HASH_ITERATIONS,
+        passwordAlgorithm: ADMIN_HASH_ALGORITHM
+    };
+}
+
+function publicAdminAccount(admin) {
+    const {
+        passwordHash,
+        passwordSalt,
+        passwordIterations,
+        passwordAlgorithm,
+        ...publicAdmin
+    } = admin;
+    return publicAdmin;
 }
 
 async function registerLocalAdmin(payload) {
@@ -286,11 +359,12 @@ async function registerLocalAdmin(payload) {
         return { success: false, message: 'This admin username or email already exists.' };
     }
 
+    const passwordRecord = await hashAdminPassword(password);
     const admin = {
         id: Date.now(),
         username,
         email,
-        passwordHash: await hashAdminPassword(password),
+        ...passwordRecord,
         role: 'admin',
         fullName: username,
         created_at: new Date().toISOString()
@@ -298,7 +372,7 @@ async function registerLocalAdmin(payload) {
     accounts.push(admin);
     saveLocalAdminAccounts(accounts);
 
-    const { passwordHash, ...publicAdmin } = admin;
+    const publicAdmin = publicAdminAccount(admin);
     sessionStorage.setItem('currentAdminUser', JSON.stringify(publicAdmin));
     return { success: true, message: 'Admin account created', data: publicAdmin };
 }
@@ -306,7 +380,6 @@ async function registerLocalAdmin(payload) {
 async function loginLocalAdmin(payload) {
     const username = String(payload.username || '').trim();
     const password = String(payload.password || '');
-    const passwordHash = await hashAdminPassword(password);
     const accounts = getLocalAdminAccounts();
     const defaultAdminAlreadySaved = accounts.some(admin =>
         admin.username.toLowerCase() === DEFAULT_ADMIN_USERNAME ||
@@ -326,16 +399,45 @@ async function loginLocalAdmin(payload) {
         });
     }
 
-    const account = getLocalAdminAccounts().find(admin =>
-        (admin.username.toLowerCase() === username.toLowerCase() || admin.email.toLowerCase() === username.toLowerCase()) &&
-        admin.passwordHash === passwordHash
+    const accountIndex = accounts.findIndex(admin =>
+        admin.username.toLowerCase() === username.toLowerCase() ||
+        admin.email.toLowerCase() === username.toLowerCase()
     );
+    const account = accountIndex >= 0 ? accounts[accountIndex] : null;
 
     if (!account) {
         return { success: false, message: 'Invalid admin username or password.' };
     }
 
-    const { passwordHash: _passwordHash, ...publicAdmin } = account;
+    let passwordMatches = false;
+    if (account.passwordSalt && account.passwordAlgorithm === ADMIN_HASH_ALGORITHM) {
+        const passwordRecord = await hashAdminPassword(password, account.passwordSalt);
+        passwordMatches = account.passwordHash === passwordRecord.passwordHash;
+    } else if (account.passwordSalt && account.passwordAlgorithm === 'SHA-256-FALLBACK') {
+        passwordMatches = account.passwordHash === await legacyHashAdminPassword(`${account.passwordSalt}:${password}`);
+        if (passwordMatches && window.crypto?.subtle) {
+            accounts[accountIndex] = {
+                ...account,
+                ...(await hashAdminPassword(password))
+            };
+            saveLocalAdminAccounts(accounts);
+        }
+    } else {
+        passwordMatches = account.passwordHash === await legacyHashAdminPassword(password);
+        if (passwordMatches) {
+            accounts[accountIndex] = {
+                ...account,
+                ...(await hashAdminPassword(password))
+            };
+            saveLocalAdminAccounts(accounts);
+        }
+    }
+
+    if (!passwordMatches) {
+        return { success: false, message: 'Invalid admin username or password.' };
+    }
+
+    const publicAdmin = publicAdminAccount(accounts[accountIndex]);
     sessionStorage.setItem('currentAdminUser', JSON.stringify(publicAdmin));
     return { success: true, message: 'Admin login successful', data: publicAdmin };
 }
