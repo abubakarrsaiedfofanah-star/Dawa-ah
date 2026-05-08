@@ -389,19 +389,36 @@ function deletePublicLeader(id) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     attachEventListeners();
+    attachWelfareSyncListeners();
     loadLandingPageContent(); // Load dynamic content for landing page
 });
 
+function attachWelfareSyncListeners() {
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'welfareRequests') {
+            welfareRequests = JSON.parse(localStorage.getItem('welfareRequests')) || [];
+            updateWelfareRequestsList();
+            updateDashboardStats();
+        }
+    });
+
+    window.addEventListener('focus', function() {
+        if (currentUser) {
+            syncWelfareRequestsFromAdmin().finally(() => updateWelfareRequestsList());
+        }
+    });
+
+    setInterval(() => {
+        const welfareView = document.getElementById('welfareView');
+        if (currentUser && welfareView?.classList.contains('active')) {
+            syncWelfareRequestsFromAdmin().finally(() => updateWelfareRequestsList());
+        }
+    }, 5000);
+}
+
 // INITIALIZATION
 function initializeApp() {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        currentRole = localStorage.getItem('currentRole');
-        showDashboard();
-    }
-
-    // Load stored data
+    // Load stored data before rendering any logged-in dashboard view.
     registeredEvents = JSON.parse(localStorage.getItem('registeredEvents')) || [];
     welfareRequests = JSON.parse(localStorage.getItem('welfareRequests')) || [];
     donations = JSON.parse(localStorage.getItem('donations')) || [];
@@ -409,6 +426,13 @@ function initializeApp() {
     leadershipRoles = JSON.parse(localStorage.getItem('leadershipRoles')) || [];
     allMembers = JSON.parse(localStorage.getItem('allMembers')) || [];
     allEvents = JSON.parse(localStorage.getItem('allEvents')) || [];
+
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        currentRole = localStorage.getItem('currentRole');
+        showDashboard();
+    }
 }
 
 function attachEventListeners() {
@@ -567,7 +591,12 @@ function handleRegistration(e) {
             .then(savedUser => completeLocalRegistration(savedUser))
             .catch(error => {
                 console.error('Registration database error:', error);
-                alert(error.message || 'Registration could not be saved to the database.');
+                newUser.databaseSynced = false;
+                newUser.databaseSyncError = error.message || 'Database save unavailable';
+                completeLocalRegistration(newUser, {
+                    databaseSynced: false,
+                    message: 'Registration successful locally. Database sync is unavailable, but you can login now.'
+                });
             });
         return;
     }
@@ -575,9 +604,24 @@ function handleRegistration(e) {
     completeLocalRegistration(newUser);
 }
 
-function completeLocalRegistration(newUser) {
-    allMembers.push(newUser);
+function completeLocalRegistration(newUser, options = {}) {
+    const existingIndex = allMembers.findIndex(member =>
+        member.studentId === newUser.studentId ||
+        member.email === newUser.email ||
+        member.username === newUser.username
+    );
+
+    if (existingIndex >= 0) {
+        allMembers[existingIndex] = { ...allMembers[existingIndex], ...newUser };
+    } else {
+        allMembers.push(newUser);
+    }
+
     localStorage.setItem('allMembers', JSON.stringify(allMembers));
+
+    if (options.databaseSynced === false) {
+        showNotification(options.message, 'warning');
+    }
 
     alert('Registration successful! Please login using the role you registered with.');
     document.getElementById('registrationForm').reset();
@@ -947,6 +991,7 @@ function renewMembership() {
 // PRAYER TIMES
 function loadPrayerTimes() {
     const container = document.getElementById('prayerTimesDetails');
+    loadReligiousActivities();
     if (!container) return;
 
     const today = new Date().toISOString().slice(0, 10);
@@ -975,6 +1020,117 @@ function loadPrayerTimes() {
     .catch(() => {
         container.innerHTML = '<p class="text-muted">Prayer timetable has not been added yet.</p>';
     });
+}
+
+function getReligiousActivities() {
+    return JSON.parse(localStorage.getItem('adminReligiousActivities')) || {
+        jummah: [],
+        ramadan: [],
+        lectures: []
+    };
+}
+
+function loadReligiousActivities() {
+    const data = getReligiousActivities();
+    renderJummahReminders(data.jummah || []);
+    renderRamadanSchedule(data.ramadan || []);
+    renderIslamicLectures(data.lectures || []);
+}
+
+function renderJummahReminders(items) {
+    const container = document.getElementById('jummahDetails');
+    if (!container) return;
+
+    if (!items.length) {
+        container.innerHTML = '<p class="text-center text-muted mb-3">No Jumu\'ah reminders have been added yet.</p>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Khutbah Topic</th>
+                        <th>Speaker</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map(item => `
+                        <tr>
+                            <td>${item.date || '-'}</td>
+                            <td>${item.time || '-'}</td>
+                            <td>${item.topic || '-'}</td>
+                            <td>${item.speaker || '-'}</td>
+                        </tr>
+                        ${item.note ? `<tr><td colspan="4" class="text-muted">${item.note}</td></tr>` : ''}
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderRamadanSchedule(items) {
+    const container = document.getElementById('ramadanDetails');
+    if (!container) return;
+
+    if (!items.length) {
+        container.innerHTML = '<p class="text-center text-muted mb-0">No Ramadan schedule has been added yet.</p>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map(item => `
+                        <tr>
+                            <td>${item.event || '-'}</td>
+                            <td>${item.date || '-'}</td>
+                            <td>${item.time || '-'}</td>
+                            <td>${item.note || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderIslamicLectures(items) {
+    const container = document.getElementById('lecturesDetails');
+    if (!container) return;
+
+    if (!items.length) {
+        container.innerHTML = '<div class="col-12"><p class="text-center text-muted mb-0">No Islamic lectures have been added yet.</p></div>';
+        return;
+    }
+
+    container.innerHTML = items.map(item => `
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0">${item.title || 'Islamic Lecture'}</h6>
+                </div>
+                <div class="card-body">
+                    <small class="d-block text-muted">${item.schedule || '-'}</small>
+                    ${item.speaker ? `<p class="mb-2"><strong>Speaker:</strong> ${item.speaker}</p>` : ''}
+                    <p class="mb-0">${item.description || 'Details will be shared soon.'}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 // EVENTS
@@ -1389,6 +1545,7 @@ function resolveAppUrl(url) {
 // WELFARE
 function loadWelfareData() {
     updateWelfareRequestsList();
+    syncWelfareRequestsFromAdmin();
 }
 
 function showWelfareModal() {
@@ -1413,7 +1570,14 @@ function submitWelfareRequest() {
         amount: amount || 'Not specified',
         dateSubmitted: new Date().toLocaleDateString(),
         status: 'Pending Review',
-        submittedBy: currentUser.name || currentUser.fullName || currentUser.username
+        submittedBy: currentUser.name || currentUser.fullName || currentUser.username,
+        submittedByKey: getCurrentWelfareUserKey(),
+        submittedByName: currentUser.fullName || currentUser.name || currentUser.username,
+        submittedByEmail: currentUser.email || '',
+        submittedByPhone: currentUser.phone || '',
+        submittedByStudentId: currentUser.studentId || currentUser.username || '',
+        submittedByCourse: currentUser.course || '',
+        submittedByYear: currentUser.yearOfStudy || ''
     };
 
     if (!frontendOnly) {
@@ -1425,7 +1589,14 @@ function submitWelfareRequest() {
                 student_id: studentId,
                 category: type,
                 description: description,
-                amount: amount || 0
+                amount: amount || 0,
+                submitted_by_name: request.submittedByName,
+                submitted_by_key: request.submittedByKey,
+                submitted_by_email: request.submittedByEmail,
+                submitted_by_phone: request.submittedByPhone,
+                submitted_by_student_id: request.submittedByStudentId,
+                submitted_by_course: request.submittedByCourse,
+                submitted_by_year: request.submittedByYear
             })
         }))
         .then(response => response.json())
@@ -1433,11 +1604,16 @@ function submitWelfareRequest() {
             if (!result.success) {
                 throw new Error(result.message || 'Could not save welfare request to database');
             }
+            request.id = result.data?.request_id || request.id;
+            request.databaseSynced = true;
             saveWelfareRequestLocally(request);
         })
         .catch(error => {
             console.error('Welfare database error:', error);
-            alert(error.message || 'Welfare request could not be saved to the database.');
+            request.databaseSynced = false;
+            request.databaseSyncError = error.message || 'Database save unavailable';
+            saveWelfareRequestLocally(request);
+            showNotification('Request saved locally. Database sync is unavailable.', 'warning');
         });
         return;
     }
@@ -1446,16 +1622,139 @@ function submitWelfareRequest() {
 }
 
 function saveWelfareRequestLocally(request) {
-    welfareRequests.push(request);
+    const existingIndex = welfareRequests.findIndex(item => Number(item.id) === Number(request.id));
+    if (existingIndex >= 0) {
+        welfareRequests[existingIndex] = { ...welfareRequests[existingIndex], ...request };
+    } else {
+        welfareRequests.push(request);
+    }
     localStorage.setItem('welfareRequests', JSON.stringify(welfareRequests));
     alert('Welfare request submitted successfully!');
 
     document.getElementById('welfareForm').reset();
     bootstrap.Modal.getInstance(document.getElementById('welfareModal')).hide();
+    updateWelfareRequestsList();
+    updateDashboardStats();
 }
 
 function updateWelfareRequestsList() {
-    // Updates welfare list
+    const tbody = document.getElementById('welfareRequestsTableBody');
+    if (!tbody) return;
+
+    welfareRequests = JSON.parse(localStorage.getItem('welfareRequests')) || [];
+    const userKey = getCurrentWelfareUserKey();
+    const userRequests = welfareRequests.filter(request => {
+        if (!userKey) return true;
+        return request.submittedByKey === userKey ||
+            request.submittedByStudentId === currentUser?.studentId ||
+            request.submittedByStudentId === currentUser?.username ||
+            request.submittedByEmail === currentUser?.email ||
+            request.submittedBy === currentUser?.fullName ||
+            request.submittedBy === currentUser?.name ||
+            request.submittedBy === currentUser?.username;
+    });
+
+    if (!userRequests.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No welfare requests submitted yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = userRequests.map(request => `
+        <tr>
+            <td>${request.type || request.category || 'Welfare Request'}</td>
+            <td>${request.dateSubmitted || request.created_at || '-'}</td>
+            <td><span class="badge bg-${getWelfareStatusColor(request.status)}"><i class="fas ${getWelfareStatusIcon(request.status)} me-1"></i>${formatWelfareStatus(request.status)}</span></td>
+            <td>${formatWelfareAmount(request.amount || request.amount_needed)}</td>
+        </tr>
+    `).join('');
+}
+
+function formatWelfareStatus(status) {
+    const normalized = String(status || 'Pending Review').toLowerCase();
+    if (normalized === 'approved') return 'Approved';
+    if (normalized === 'rejected') return 'Rejected';
+    if (normalized === 'completed') return 'Completed';
+    return 'Pending Review';
+}
+
+function getWelfareStatusColor(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'approved' || normalized === 'completed') return 'success';
+    if (normalized === 'rejected') return 'danger';
+    return 'warning text-dark';
+}
+
+function getWelfareStatusIcon(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'approved' || normalized === 'completed') return 'fa-circle-check';
+    if (normalized === 'rejected') return 'fa-circle-xmark';
+    return 'fa-clock';
+}
+
+function formatWelfareAmount(amount) {
+    if (amount === undefined || amount === null || amount === '' || amount === 'Not specified') {
+        return 'Not specified';
+    }
+    return '$' + Number(amount).toLocaleString();
+}
+
+function getCurrentWelfareUserKey() {
+    return currentUser?.username || currentUser?.studentId || currentUser?.email || currentUser?.fullName || currentUser?.name || '';
+}
+
+function syncWelfareRequestsFromAdmin() {
+    if (!currentUser || frontendOnly) return Promise.resolve();
+
+    return fetch('admin_api.php?action=getWelfareRequests')
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success || !Array.isArray(result.data)) return;
+            const userKey = getCurrentWelfareUserKey();
+            const userName = currentUser.fullName || currentUser.name || currentUser.username || '';
+            const current = JSON.parse(localStorage.getItem('welfareRequests')) || [];
+            const synced = result.data
+                .filter(item => {
+                    const dbStudentId = item.student_id || item.student_number || '';
+                    const dbName = [item.first_name, item.last_name].filter(Boolean).join(' ');
+                    return dbStudentId === currentUser.studentId ||
+                        dbStudentId === currentUser.username ||
+                        item.email === currentUser.email ||
+                        dbName === userName ||
+                        item.submittedByKey === userKey;
+                })
+                .map(item => ({
+                    id: item.id,
+                    type: item.type || item.category || 'Welfare Request',
+                    description: item.description || '',
+                    amount: item.amount || item.amount_needed || 'Not specified',
+                    dateSubmitted: item.dateSubmitted || item.created_at || '-',
+                    status: item.status || 'Pending Review',
+                    submittedBy: userName,
+                    submittedByKey: userKey,
+                    submittedByName: userName,
+                    submittedByEmail: currentUser.email || '',
+                    submittedByPhone: currentUser.phone || '',
+                    submittedByStudentId: currentUser.studentId || currentUser.username || '',
+                    submittedByCourse: currentUser.course || '',
+                    submittedByYear: currentUser.yearOfStudy || '',
+                    databaseSynced: true
+                }));
+
+            const merged = [...current];
+            synced.forEach(item => {
+                const index = merged.findIndex(existing => Number(existing.id) === Number(item.id));
+                if (index >= 0) {
+                    merged[index] = { ...merged[index], ...item };
+                } else {
+                    merged.push(item);
+                }
+            });
+
+            welfareRequests = merged;
+            localStorage.setItem('welfareRequests', JSON.stringify(welfareRequests));
+            updateWelfareRequestsList();
+        })
+        .catch(() => {});
 }
 
 function approveWelfare() {
@@ -2180,14 +2479,19 @@ function loadAdminWelfare() {
 
     tbody.innerHTML = welfareRequests.map(request => `
         <tr>
-            <td>${request.name || currentUser?.name || currentUser?.username || 'Member'}</td>
+            <td>
+                <strong>${request.submittedByName || request.submittedBy || request.name || currentUser?.name || currentUser?.username || 'Member'}</strong>
+                <div class="small text-muted"><i class="fas fa-id-card"></i> ${request.submittedByStudentId || 'No student ID'}</div>
+                <div class="small text-muted"><i class="fas fa-envelope"></i> ${request.submittedByEmail || 'No email'}</div>
+                <div class="small text-muted"><i class="fas fa-phone"></i> ${request.submittedByPhone || 'No phone'}</div>
+            </td>
             <td>${request.type || request.category || 'Support request'}</td>
             <td>${request.amount || 'Not specified'}</td>
             <td>${request.date || request.submittedDate || 'Recently'}</td>
-            <td><span class="badge bg-warning text-dark">${request.status || 'Pending Review'}</span></td>
+            <td><span class="badge bg-${getWelfareStatusColor(request.status)}"><i class="fas ${getWelfareStatusIcon(request.status)} me-1"></i>${formatWelfareStatus(request.status)}</span></td>
             <td>
-                <button class="btn btn-sm btn-success" onclick="approveWelfare()">Approve</button>
-                <button class="btn btn-sm btn-danger" onclick="rejectWelfare()">Reject</button>
+                <button class="btn btn-sm btn-success" onclick="approveWelfare()"><i class="fas fa-circle-check"></i> Approve</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectWelfare()"><i class="fas fa-circle-xmark"></i> Reject</button>
             </td>
         </tr>
     `).join('');
@@ -2345,13 +2649,24 @@ function clearLocalStorage(key) {
 
 // Notifications
 function showNotification(message, type = 'info') {
+    const notificationIcons = {
+        info: 'fa-bell',
+        warning: 'fa-triangle-exclamation',
+        success: 'fa-circle-check',
+        danger: 'fa-triangle-exclamation',
+        report: 'fa-chart-line',
+        users: 'fa-users',
+        admins: 'fa-user-shield'
+    };
+    const bootstrapType = ['info', 'warning', 'success', 'danger'].includes(type) ? type : 'info';
+    const icon = notificationIcons[type] || notificationIcons.info;
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.className = `alert alert-${bootstrapType} alert-dismissible fade show position-fixed`;
     alertDiv.style.top = '20px';
     alertDiv.style.right = '20px';
     alertDiv.style.zIndex = '9999';
     alertDiv.innerHTML = `
-        ${message}
+        <i class="fas ${icon} me-2"></i>${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 
@@ -2852,7 +3167,7 @@ function loadAdminContact() {
     // Load contact info from localStorage
     let contactInfo = JSON.parse(localStorage.getItem('contactInfo')) || {
         location: '',
-        phone: '',
+        phone: '+23231422167',
         email: '',
         hours: ''
     };
@@ -2867,7 +3182,7 @@ function loadAdminContact() {
 function updateContactInfo(type) {
     let contactInfo = JSON.parse(localStorage.getItem('contactInfo')) || {
         location: '',
-        phone: '',
+        phone: '+23231422167',
         email: '',
         hours: ''
     };

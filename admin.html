@@ -131,6 +131,72 @@
         #dashboardDetailTable {
             transition: opacity 0.25s ease;
         }
+
+        .admin-welcome-banner {
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.22), transparent 24%),
+                linear-gradient(135deg, #1e3a8a 0%, #2c5aa0 46%, #111827 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 14px 28px rgba(17,24,39,0.18);
+            overflow: hidden;
+        }
+
+        .admin-welcome-kicker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .admin-welcome-kicker span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.1);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .admin-welcome-marquee {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .admin-welcome-track {
+            display: inline-flex;
+            gap: 42px;
+            min-width: max-content;
+            animation: adminWelcomeMarquee 18s linear infinite;
+        }
+
+        .admin-welcome-track span {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .admin-welcome-subtext {
+            margin: 14px 0 0;
+            opacity: 0.94;
+        }
+
+        @keyframes adminWelcomeMarquee {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
         
         .form-section {
             background: #f9f9f9;
@@ -235,6 +301,14 @@
                 margin-left: 200px;
                 padding: 15px;
             }
+
+            .admin-welcome-banner {
+                padding: 20px;
+            }
+
+            .admin-welcome-track span {
+                font-size: 22px;
+            }
         }
     </style>
 </head>
@@ -248,16 +322,19 @@
             </div>
             
             <ul class="nav-menu">
-                <li><a href="#" onclick="switchAdminView('dashboard')" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="#" onclick="switchAdminView('announcements')"><i class="fas fa-bell"></i> Announcements</a></li>
+                <li><a href="#" onclick="switchAdminView('dashboard')" class="active"><i class="fas fa-chart-line"></i> Reports Dashboard</a></li>
+                <li><a href="#" onclick="switchAdminView('announcements')"><i class="fas fa-bell"></i> Notifications</a></li>
                 <li><a href="#" onclick="switchAdminView('events')"><i class="fas fa-calendar"></i> Events</a></li>
                 <li><a href="#" onclick="switchAdminView('leadership')"><i class="fas fa-users"></i> Leadership</a></li>
                 <li><a href="#" onclick="switchAdminView('gallery')"><i class="fas fa-images"></i> Gallery</a></li>
-                <li><a href="#" onclick="switchAdminView('welfare')"><i class="fas fa-hands-helping"></i> Welfare</a></li>
-                <li><a href="#" onclick="switchAdminView('prayer')"><i class="fas fa-mosque"></i> Prayer Times</a></li>
+                <li><a href="#" onclick="switchAdminView('welfare')"><i class="fas fa-triangle-exclamation"></i> Welfare Warnings</a></li>
+                <li><a href="#" onclick="switchAdminView('prayer')"><i class="fas fa-mosque"></i> Prayer & Religious Activities</a></li>
+                <li><a href="#" onclick="showReligiousAdminSection('jummahAdminSection')"><i class="fas fa-bell"></i> Jumu'ah Reminders</a></li>
+                <li><a href="#" onclick="showReligiousAdminSection('ramadanAdminSection')"><i class="fas fa-moon"></i> Ramadan Schedule</a></li>
+                <li><a href="#" onclick="showReligiousAdminSection('lectureAdminSection')"><i class="fas fa-chalkboard-user"></i> Islamic Lectures</a></li>
                 <li><a href="#" onclick="switchAdminView('resources')"><i class="fas fa-folder-open"></i> Resources</a></li>
                 <li><a href="#" onclick="switchAdminView('hadiths')"><i class="fas fa-book"></i> Hadiths</a></li>
-                <li><a href="#" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="#" onclick="logoutAdmin()"><i class="fas fa-user-shield"></i> Admin Logout</a></li>
             </ul>
         </div>
         
@@ -272,22 +349,41 @@
             
             <!-- Dashboard View -->
             <div id="dashboardView" class="admin-content active">
+                <div class="admin-welcome-banner">
+                    <div class="admin-welcome-kicker">
+                        <span><i class="fas fa-bell"></i> Notifications</span>
+                        <span><i class="fas fa-triangle-exclamation"></i> Warnings</span>
+                        <span><i class="fas fa-circle-check"></i> Success</span>
+                        <span><i class="fas fa-chart-line"></i> Reports</span>
+                        <span><i class="fas fa-users"></i> Users</span>
+                        <span><i class="fas fa-user-shield"></i> Admins</span>
+                    </div>
+                    <div class="admin-welcome-marquee" aria-label="Welcome to COMMUJ College Of Medicine">
+                        <div class="admin-welcome-track">
+                            <span><i class="fas fa-star"></i> Welcome to COMMUJ, College Of Medicine</span>
+                            <span><i class="fas fa-mosque"></i> Admin Control Center</span>
+                            <span><i class="fas fa-star"></i> Welcome to COMMUJ, College Of Medicine</span>
+                            <span><i class="fas fa-mosque"></i> Admin Control Center</span>
+                        </div>
+                    </div>
+                    <p class="admin-welcome-subtext">Manage members, reports, resources, and community updates from one focused workspace.</p>
+                </div>
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('members')">
-                            <h5>Members</h5>
+                            <h5><i class="fas fa-users"></i> Members</h5>
                             <h2 id="memberCount" style="color: var(--primary-color);">0</h2>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('students')">
-                            <h5>Students</h5>
+                            <h5><i class="fas fa-user-graduate"></i> Students</h5>
                             <h2 id="studentCount" style="color: var(--secondary-color);">0</h2>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="content-card text-center dashboard-stat-card" style="cursor:pointer;" onclick="loadDashboardDetail('donations')">
-                            <h5>Total Donations</h5>
+                            <h5><i class="fas fa-circle-check"></i> Total Donations</h5>
                             <h2 id="donationTotal" style="color: #16a34a;">$0</h2>
                             <small><span id="donationCount">0</span> donation records</small>
                         </div>
@@ -551,7 +647,51 @@
 
             <div id="prayerView" class="admin-content">
                 <div class="content-card">
-                    <div class="form-section">
+                    <h3 class="mb-3"><i class="fas fa-mosque"></i> Prayer Times & Religious Activities</h3>
+                    <p class="text-muted">Use this panel to update everything users see under Prayer Times, Jumu'ah Reminders, Ramadan Schedule, and Islamic Lectures.</p>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-circle-info"></i> These three sections below control the Jumu'ah, Ramadan, and Islamic Lecture tabs that users see.
+                    </div>
+
+                    <div class="form-section" id="jummahAdminSection">
+                        <h4><i class="fas fa-bell"></i> Manage Jumu'ah Reminders</h4>
+                        <div class="row">
+                            <div class="col-md-3 mb-3"><label>Date</label><input type="date" class="form-control" id="jummahDate"></div>
+                            <div class="col-md-3 mb-3"><label>Time</label><input type="time" class="form-control" id="jummahTime"></div>
+                            <div class="col-md-3 mb-3"><label>Khutbah Topic</label><input type="text" class="form-control" id="jummahTopic"></div>
+                            <div class="col-md-3 mb-3"><label>Speaker</label><input type="text" class="form-control" id="jummahSpeaker"></div>
+                            <div class="col-12 mb-3"><label>Note</label><textarea class="form-control" id="jummahNote" rows="2"></textarea></div>
+                        </div>
+                        <button class="btn btn-success" id="jummahSaveBtn" onclick="saveReligiousActivity('jummah')"><i class="fas fa-save"></i> Add Jumu'ah Reminder</button>
+                    </div>
+
+                    <div class="form-section" id="ramadanAdminSection">
+                        <h4><i class="fas fa-moon"></i> Manage Ramadan Schedule</h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label>Event</label><input type="text" class="form-control" id="ramadanEvent"></div>
+                            <div class="col-md-4 mb-3"><label>Date</label><input type="text" class="form-control" id="ramadanDate" placeholder="Daily, March 12, 2026..."></div>
+                            <div class="col-md-4 mb-3"><label>Time</label><input type="text" class="form-control" id="ramadanTime" placeholder="6:45 PM"></div>
+                            <div class="col-12 mb-3"><label>Note</label><textarea class="form-control" id="ramadanNote" rows="2"></textarea></div>
+                        </div>
+                        <button class="btn btn-success" id="ramadanSaveBtn" onclick="saveReligiousActivity('ramadan')"><i class="fas fa-save"></i> Add Ramadan Item</button>
+                    </div>
+
+                    <div class="form-section" id="lectureAdminSection">
+                        <h4><i class="fas fa-chalkboard-user"></i> Manage Islamic Lectures</h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label>Title</label><input type="text" class="form-control" id="lectureTitle"></div>
+                            <div class="col-md-4 mb-3"><label>Schedule</label><input type="text" class="form-control" id="lectureSchedule" placeholder="Every Tuesday, 6:00 PM"></div>
+                            <div class="col-md-4 mb-3"><label>Speaker</label><input type="text" class="form-control" id="lectureSpeaker"></div>
+                            <div class="col-12 mb-3"><label>Description</label><textarea class="form-control" id="lectureDescription" rows="2"></textarea></div>
+                        </div>
+                        <button class="btn btn-success" id="lectureSaveBtn" onclick="saveReligiousActivity('lecture')"><i class="fas fa-save"></i> Add Lecture</button>
+                    </div>
+
+                    <h4 style="margin-top: 30px;"><i class="fas fa-list"></i> Religious Activities Users Will See</h4>
+                    <div id="religiousActivitiesList"></div>
+
+                    <div class="form-section" style="margin-top: 30px;">
                         <h4><i class="fas fa-mosque"></i> Manage Prayer Timetable</h4>
                         <div class="row">
                             <div class="col-md-4 mb-3"><label>Date</label><input type="date" class="form-control" id="prayerDate"></div>
@@ -645,6 +785,6 @@
     <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="admin.js?v=resource-upload-20260507"></script>
+    <script src="admin.js?v=religious-admin-top-20260508"></script>
 </body>
 </html>

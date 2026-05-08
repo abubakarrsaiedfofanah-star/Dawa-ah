@@ -22,16 +22,25 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto nav nav-tabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link" href="#home" onclick="showLanding(); scrollToSection('home')">Home</a>
+                            <a class="nav-link" href="#home" onclick="showLanding(); scrollToSection('home')"><i class="fas fa-home"></i> Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#about" onclick="showLanding(); scrollToSection('about')">About Us</a>
+                            <a class="nav-link" href="#about" onclick="showLanding(); scrollToSection('about')"><i class="fas fa-circle-info"></i> About Us</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#contact" onclick="showLanding(); scrollToSection('contact')">Contact Us</a>
+                            <a class="nav-link" href="#mission" onclick="showLanding(); scrollToSection('mission')"><i class="fas fa-hand-holding-heart"></i> What We Do</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="javascript:void(0)" onclick="activateAuthTab('login')">Login</a>
+                            <a class="nav-link" href="#leadership" onclick="showLanding(); scrollToSection('leadership')"><i class="fas fa-users"></i> Our Leadership</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#gallery" onclick="showLanding(); scrollToSection('gallery')"><i class="fas fa-images"></i> Gallery</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact" onclick="showLanding(); scrollToSection('contact')"><i class="fas fa-bell"></i> Contact Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" onclick="activateAuthTab('login')"><i class="fas fa-user-shield"></i> Login</a>
                         </li>
                     </ul>
                 </div>
@@ -170,14 +179,14 @@
                                 <i class="fas fa-phone"></i>
                                 <div>
                                     <h6>Phone</h6>
-                                    <p>+1 (555) 123-4567</p>
+                                    <p>+23231422167</p>
                                 </div>
                             </div>
                             <div class="contact-item">
                                 <i class="fab fa-whatsapp"></i>
                                 <div>
                                     <h6>WhatsApp</h6>
-                                    <p><a href="https://api.whatsapp.com/send?phone=031422167&text=Assalamu%20alaikum%2C%20I%20would%20like%20to%20contact%20COMMUJ." target="_blank" rel="noopener">031422167</a></p>
+                                    <p><a href="https://api.whatsapp.com/send?phone=23231422167&text=Assalamu%20alaikum%2C%20I%20would%20like%20to%20contact%20COMMUJ." target="_blank" rel="noopener">+23231422167</a></p>
                                 </div>
                             </div>
                             <div class="contact-item">
@@ -626,10 +635,23 @@
                     <div id="dashboardView" class="view-container active">
                         <!-- Animated Welcome Banner -->
                         <div class="welcome-banner">
-                            <h1 class="welcome-text">
-                                <i class="fas fa-star"></i> Welcome to COMMUJ <i class="fas fa-star"></i>
-                            </h1>
-                            <p class="welcome-subtext">College of Medicine Muslim Jamaat Association</p>
+                            <div class="welcome-kicker">
+                                <span><i class="fas fa-bell"></i> Notifications</span>
+                                <span><i class="fas fa-triangle-exclamation"></i> Warnings</span>
+                                <span><i class="fas fa-circle-check"></i> Success</span>
+                                <span><i class="fas fa-chart-line"></i> Reports</span>
+                                <span><i class="fas fa-users"></i> Users</span>
+                                <span><i class="fas fa-user-shield"></i> Admins</span>
+                            </div>
+                            <div class="welcome-marquee" aria-label="Welcome to COMMUJ College Of Medicine">
+                                <div class="welcome-marquee__track">
+                                    <span><i class="fas fa-star"></i> Welcome to COMMUJ, College Of Medicine</span>
+                                    <span><i class="fas fa-mosque"></i> Muslim Jamaat Association</span>
+                                    <span><i class="fas fa-star"></i> Welcome to COMMUJ, College Of Medicine</span>
+                                    <span><i class="fas fa-mosque"></i> Muslim Jamaat Association</span>
+                                </div>
+                            </div>
+                            <p class="welcome-subtext">A smarter member space for community, service, learning, and leadership.</p>
                         </div>
 
                         <!-- Daily Hadith Reminder Section -->
@@ -955,24 +977,9 @@
                                         <h5 class="mb-0">Jumu'ah Prayer Information</h5>
                                     </div>
                                     <div class="card-body">
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-bell"></i> Jumu'ah prayer information will appear here when added.
+                                        <div id="jummahDetails">
+                                            <p class="text-center text-muted mb-0">No Jumu'ah reminders have been added yet.</p>
                                         </div>
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                    <th>Khutbah Topic</th>
-                                                    <th>Speaker</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td colspan="4" class="text-center text-muted">No Jumu'ah reminders have been added yet.</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
                                         <button class="btn btn-primary"><i class="fas fa-bell"></i> Subscribe to Reminders</button>
                                     </div>
                                 </div>
@@ -982,47 +989,11 @@
                             <div id="ramadanTab" class="tab-pane fade">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="mb-0">Ramadan 1445 H (March 2024)</h5>
+                                        <h5 class="mb-0">Ramadan Schedule</h5>
                                     </div>
                                     <div class="card-body">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Event</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>Ramadan Begins</td>
-                                                    <td>March 12, 2024</td>
-                                                    <td>-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Iftar (Breaking of Fast)</td>
-                                                    <td>Daily</td>
-                                                    <td>6:45 PM</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Suhoor (Pre-dawn meal)</td>
-                                                    <td>Daily</td>
-                                                    <td>5:15 AM</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Taraweeh Prayer</td>
-                                                    <td>Nightly</td>
-                                                    <td>9:30 PM</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Eid ul-Fitr Celebration</td>
-                                                    <td>April 10, 2024</td>
-                                                    <td>8:30 AM</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <div class="alert alert-info mt-3">
-                                            <strong>Community Iftar:</strong> Join us for communal iftar every evening in the main hall
+                                        <div id="ramadanDetails">
+                                            <p class="text-center text-muted mb-0">No Ramadan schedule has been added yet.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1030,42 +1001,9 @@
 
                             <!-- Lectures Tab -->
                             <div id="lecturesTab" class="tab-pane fade">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h6 class="mb-0">Islamic Lectures Series</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="lecture-item">
-                                                    <strong>Quran Study Circle</strong>
-                                                    <small class="d-block text-muted">Every Tuesday, 6:00 PM - 7:30 PM</small>
-                                                    <p>Join our weekly Quran recitation and tafsir sessions</p>
-                                                </div>
-                                                <hr>
-                                                <div class="lecture-item">
-                                                    <strong>Da'wah & Islamic Knowledge</strong>
-                                                    <small class="d-block text-muted">Every Thursday, 7:00 PM - 8:30 PM</small>
-                                                    <p>Learn about Islamic principles and contemporary issues</p>
-                                                </div>
-                                                <hr>
-                                                <div class="lecture-item">
-                                                    <strong>Islamic History Series</strong>
-                                                    <small class="d-block text-muted">Every Saturday, 3:00 PM - 4:30 PM</small>
-                                                    <p>Explore the rich history of Islamic civilization</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h6 class="mb-0">Upcoming Lectures</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="text-center text-muted mb-0">No lectures have been added yet.</p>
-                                            </div>
-                                        </div>
+                                <div id="lecturesDetails" class="row">
+                                    <div class="col-12">
+                                        <p class="text-center text-muted mb-0">No Islamic lectures have been added yet.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1143,103 +1081,7 @@
                             <button class="btn btn-primary" onclick="showWelfareModal()">Submit Welfare Request</button>
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-hands-helping"></i>
-                                        </div>
-                                        <h6>Total Requests</h6>
-                                        <p class="stat-value">3</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                        <h6>Approved</h6>
-                                        <p class="stat-value">2</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-hourglass-half"></i>
-                                        </div>
-                                        <h6>Pending</h6>
-                                        <p class="stat-value">1</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-times"></i>
-                                        </div>
-                                        <h6>Rejected</h6>
-                                        <p class="stat-value">0</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Available Welfare Categories</h5>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleSection('welfareCategoriesDetails')">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="card-body" id="welfareCategoriesDetails">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-money-bill"></i> Financial Assistance</h6>
-                                            <p class="text-muted">Emergency financial support for deserving members</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-hospital"></i> Medical Support</h6>
-                                            <p class="text-muted">Assistance with medical bills and healthcare</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-home"></i> Accommodation Support</h6>
-                                            <p class="text-muted">Help with housing and accommodation needs</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-utensils"></i> Food Support</h6>
-                                            <p class="text-muted">Food assistance, especially during Ramadan</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-heart"></i> Counseling</h6>
-                                            <p class="text-muted">Emotional and academic counseling support</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="welfare-category">
-                                            <h6><i class="fas fa-ambulance"></i> Emergency Support</h6>
-                                            <p class="text-muted">Urgent assistance in emergency situations</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card mt-3">
                             <div class="card-header">
                                 <h5 class="mb-0">Your Welfare Requests</h5>
                             </div>
@@ -1253,18 +1095,9 @@
                                             <th>Amount</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="welfareRequestsTableBody">
                                         <tr>
-                                            <td>Medical Support</td>
-                                            <td>April 20, 2024</td>
-                                            <td><span class="badge bg-success">Approved</span></td>
-                                            <td>$500</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Financial Assistance</td>
-                                            <td>April 15, 2024</td>
-                                            <td><span class="badge bg-warning text-dark">Pending</span></td>
-                                            <td>$300</td>
+                                            <td colspan="4" class="text-center text-muted">No welfare requests submitted yet.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1758,7 +1591,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <p><strong>Phone:</strong></p>
-                                        <p id="displayPhone">+1 (555) 123-4567</p>
+                                        <p id="displayPhone">+23231422167</p>
                                     </div>
                                 </div>
                                 <div class="row mt-3">

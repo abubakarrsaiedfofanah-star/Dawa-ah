@@ -909,7 +909,9 @@ function completeDonation($donation_id, $transaction_id = null) {
 
 function getAllWelfareRequests() {
     $conn = getDBConnection();
-    $sql = "SELECT wr.*, s.first_name, s.last_name, s.student_id
+    $sql = "SELECT wr.*, wr.student_id AS student_db_id,
+                   s.first_name, s.last_name, s.student_id AS student_number,
+                   s.email, s.phone, s.course, s.year_of_study
             FROM welfare_requests wr
             LEFT JOIN students s ON wr.student_id = s.id
             ORDER BY wr.created_at DESC";

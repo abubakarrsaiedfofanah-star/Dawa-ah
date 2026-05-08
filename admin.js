@@ -3,6 +3,8 @@
 const XAMPP_BASE_URL = 'http://localhost/comahs/';
 const API_URL = location.protocol === 'file:' ? XAMPP_BASE_URL + 'admin_api.php' : 'admin_api.php';
 let currentAdmin = null;
+let editingReligiousActivity = null;
+let adminStudentRequesters = [];
 
 const realFetch = window.fetch.bind(window);
 const useStaticAdminApi = false;
@@ -261,7 +263,7 @@ function switchAdminView(viewName) {
             'leadership': '<i class="fas fa-users"></i> Leadership',
             'gallery': '<i class="fas fa-images"></i> Gallery',
             'welfare': '<i class="fas fa-hands-helping"></i> Welfare',
-            'prayer': '<i class="fas fa-mosque"></i> Prayer Times',
+            'prayer': '<i class="fas fa-mosque"></i> Prayer & Religious Activities',
             'resources': '<i class="fas fa-folder-open"></i> Resources',
             'hadiths': '<i class="fas fa-book"></i> Hadiths'
         };
@@ -270,6 +272,19 @@ function switchAdminView(viewName) {
         // Load view-specific data
         loadViewData(viewName);
     }
+}
+
+function showReligiousAdminSection(sectionId) {
+    switchAdminView('prayer');
+    setTimeout(() => {
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        section.style.boxShadow = '0 0 0 3px rgba(44,90,160,0.25)';
+        setTimeout(() => {
+            section.style.boxShadow = '';
+        }, 1800);
+    }, 120);
 }
 
 function loadViewData(viewName) {
@@ -1211,34 +1226,197 @@ function showNotification(message, type) {
 }
 
 function loadWelfareRequests() {
-    fetch(`${API_URL}?action=getWelfareRequests`)
-    .then(response => response.json())
-    .then(result => {
-        const container = document.getElementById('welfareRequestsList');
-        const requests = result.data || [];
-        if (!requests.length) {
-            container.innerHTML = '<p class="text-muted">No welfare requests submitted yet.</p>';
-            return;
-        }
-        container.innerHTML = requests.map(req => `
-            <div class="item-card">
-                <div class="item-info flex-grow-1">
-                    <h5>${req.type || req.category || 'Welfare Request'}</h5>
-                    <p>${req.description || ''}</p>
-                    <p><strong>Amount:</strong> ${req.amount || 'Not specified'}</p>
-                    <p><strong>Submitted by:</strong> ${req.submittedBy || req.name || 'Member'}</p>
-                    <span class="badge bg-${getWelfareColor(req.status)}">${req.status || 'Pending Review'}</span>
-                </div>
-                <div class="item-actions">
-                    <button class="btn btn-sm btn-success" onclick="updateWelfareStatus(${req.id}, 'Approved')">Approve</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateWelfareStatus(${req.id}, 'Rejected')">Reject</button>
-                </div>
-            </div>
-        `).join('');
+    Promise.all([
+        fetch(`${API_URL}?action=getWelfareRequests`).then(response => response.json()).catch(() => ({ success: false, data: [] })),
+        loadAdminStudentRequesters()
+    ])
+    .then(([result]) => {
+        renderWelfareRequests(mergeWelfareRequestsForAdmin(result.data || [], readStore('welfareRequests')));
     });
 }
 
+function loadAdminStudentRequesters() {
+    return fetch(`${API_URL}?action=getDashboardDetail&type=students`)
+        .then(response => response.json())
+        .then(result => {
+            const databaseStudents = result.success && Array.isArray(result.data) ? result.data : [];
+            const localStudents = readStore('allMembers').filter(member => (member.role || 'student') === 'student');
+            adminStudentRequesters = [...databaseStudents.map(student => ({
+                id: student.id,
+                fullName: [student.first_name, student.last_name].filter(Boolean).join(' '),
+                studentId: student.student_id,
+                email: student.email,
+                phone: student.phone,
+                course: student.course,
+                yearOfStudy: student.year_of_study
+            })), ...localStudents];
+            return adminStudentRequesters;
+        })
+        .catch(() => {
+            adminStudentRequesters = readStore('allMembers').filter(member => (member.role || 'student') === 'student');
+            return adminStudentRequesters;
+        });
+}
+
+function mergeWelfareRequestsForAdmin(databaseRequests, localRequests) {
+    const merged = [...localRequests];
+    databaseRequests.forEach(request => {
+        const index = merged.findIndex(item => Number(item.id) === Number(request.id));
+        if (index >= 0) {
+            merged[index] = { ...merged[index], ...request };
+        } else {
+            merged.push(request);
+        }
+    });
+    return merged.map(enrichWelfareRequestFromMembers).sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+}
+
+function enrichWelfareRequestFromMembers(request) {
+    const members = [...adminStudentRequesters, ...readStore('allMembers')];
+    const requesterKey = request.submittedByKey || request.submittedByStudentId || request.student_number || request.student_id || request.email || request.submittedByEmail;
+    let requester = members.find(member =>
+        member.username === requesterKey ||
+        member.studentId === requesterKey ||
+        member.email === requesterKey ||
+        member.fullName === request.submittedBy ||
+        member.name === request.submittedBy ||
+        member.email === request.email
+    );
+
+    if (!requester && isMissingRequesterInfo(request)) {
+        const studentMembers = members.filter(member => (member.role || 'student') === 'student' || member.studentId || member.student_id);
+        if (studentMembers.length === 1) {
+            requester = studentMembers[0];
+        }
+    }
+
+    if (!requester) return request;
+
+    return {
+        ...request,
+        submittedByName: request.submittedByName || requester.fullName || requester.name || requester.username,
+        submittedBy: request.submittedBy || requester.fullName || requester.name || requester.username,
+        submittedByStudentId: request.submittedByStudentId || request.student_number || requester.studentId || requester.username,
+        submittedByEmail: request.submittedByEmail || requester.email,
+        submittedByPhone: request.submittedByPhone || requester.phone,
+        submittedByCourse: request.submittedByCourse || requester.course,
+        submittedByYear: request.submittedByYear || requester.yearOfStudy
+    };
+}
+
+function isMissingRequesterInfo(request) {
+    const name = String(request.submittedByName || request.submittedBy || request.name || '').trim().toLowerCase();
+    return (!name || name === 'member' || name === 'unknown member') &&
+        !request.submittedByEmail &&
+        !request.email &&
+        !request.submittedByPhone &&
+        !request.phone &&
+        !request.submittedByStudentId &&
+        !request.student_number;
+}
+
+function renderWelfareRequests(requests) {
+    const container = document.getElementById('welfareRequestsList');
+    if (!container) return;
+
+    if (!requests.length) {
+        container.innerHTML = '<p class="text-muted">No welfare requests submitted yet.</p>';
+        return;
+    }
+
+    container.innerHTML = requests.map(enrichWelfareRequestFromMembers).map(req => `
+        <div class="item-card">
+            <div class="item-info flex-grow-1">
+                <h5>${req.type || req.category || 'Welfare Request'}</h5>
+                <p>${req.description || ''}</p>
+                <p><strong>Amount:</strong> ${req.amount || req.amount_needed || 'Not specified'}</p>
+                <div class="alert alert-light border mb-2">
+                    <h6 class="mb-2"><i class="fas fa-user-circle"></i> Requester Information</h6>
+                    <p class="mb-1"><strong>Name:</strong> ${getWelfareRequesterName(req)}</p>
+                    <p class="mb-1"><strong>Student ID:</strong> ${req.submittedByStudentId || req.student_number || 'N/A'}</p>
+                    <p class="mb-1"><strong>Email:</strong> ${req.submittedByEmail || req.email || 'N/A'}</p>
+                    <p class="mb-1"><strong>Phone:</strong> ${req.submittedByPhone || req.phone || 'N/A'}</p>
+                    <p class="mb-0"><strong>Course/Year:</strong> ${[req.submittedByCourse || req.course, req.submittedByYear || req.year_of_study].filter(Boolean).join(' / ') || 'N/A'}</p>
+                </div>
+                ${renderRequesterAttachControl(req)}
+                <span class="badge bg-${getWelfareColor(req.status)}"><i class="fas ${getWelfareStatusIcon(req.status)} me-1"></i>${formatWelfareStatus(req.status)}</span>
+            </div>
+            <div class="item-actions">
+                <button class="btn btn-sm btn-success" onclick="updateWelfareStatus(${req.id}, 'Approved')"><i class="fas fa-circle-check"></i> Approve</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="updateWelfareStatus(${req.id}, 'Rejected')"><i class="fas fa-circle-xmark"></i> Reject</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderRequesterAttachControl(req) {
+    if (!isMissingRequesterInfo(req)) return '';
+    if (!adminStudentRequesters.length) {
+        return '<div class="alert alert-warning py-2"><i class="fas fa-triangle-exclamation"></i> This old request has no saved requester details. Register/login records are needed before it can be linked.</div>';
+    }
+
+    const options = adminStudentRequesters.map((student, index) => {
+        const label = `${student.fullName || student.name || student.username || 'Student'}${student.studentId ? ' - ' + student.studentId : ''}`;
+        return `<option value="${index}">${label}</option>`;
+    }).join('');
+
+    return `
+        <div class="alert alert-warning py-2">
+            <label class="form-label mb-1"><i class="fas fa-link"></i> Link this old request to a requester before deciding</label>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-control form-control-sm" id="requesterLink${req.id}" style="max-width: 320px;">
+                    <option value="">Select registered student</option>
+                    ${options}
+                </select>
+                <button class="btn btn-sm btn-primary" onclick="attachRequesterToWelfare(${req.id})"><i class="fas fa-user-check"></i> Attach requester</button>
+            </div>
+        </div>
+    `;
+}
+
+function attachRequesterToWelfare(requestId) {
+    const select = document.getElementById('requesterLink' + requestId);
+    const requester = adminStudentRequesters[Number(select?.value)];
+    if (!requester) {
+        showNotification('Please select a registered student first.', 'warning');
+        return;
+    }
+
+    const requests = readStore('welfareRequests').map(request => Number(request.id) === Number(requestId)
+        ? {
+            ...request,
+            submittedByName: requester.fullName || requester.name || requester.username,
+            submittedBy: requester.fullName || requester.name || requester.username,
+            submittedByStudentId: requester.studentId || requester.student_id || requester.username,
+            submittedByEmail: requester.email || '',
+            submittedByPhone: requester.phone || '',
+            submittedByCourse: requester.course || '',
+            submittedByYear: requester.yearOfStudy || requester.year_of_study || '',
+            submittedByKey: requester.username || requester.studentId || requester.student_id || requester.email || ''
+        }
+        : request
+    );
+    writeStore('welfareRequests', requests);
+    showNotification('Requester attached to welfare request.', 'success');
+    loadWelfareRequests();
+}
+
+function getWelfareRequesterName(req) {
+    return req.submittedByName ||
+        req.submittedBy ||
+        req.name ||
+        [req.first_name, req.last_name].filter(Boolean).join(' ') ||
+        'Unknown member';
+}
+
 function updateWelfareStatus(requestId, status) {
+    const applyLocalWelfareStatus = () => {
+        const requests = readStore('welfareRequests').map(item =>
+            Number(item.id) === Number(requestId) ? { ...item, status: status, statusUpdatedAt: new Date().toISOString() } : item
+        );
+        writeStore('welfareRequests', requests);
+    };
+
     fetch(`${API_URL}?action=updateWelfareStatus`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1247,21 +1425,43 @@ function updateWelfareStatus(requestId, status) {
     .then(response => response.json())
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not update request');
+        applyLocalWelfareStatus();
         showNotification(`Welfare request ${status.toLowerCase()}.`, 'success');
         loadWelfareRequests();
     })
-    .catch(error => showNotification(error.message, 'danger'));
+    .catch(error => {
+        applyLocalWelfareStatus();
+        showNotification(error.message ? 'Saved status locally because database is unavailable.' : `Welfare request ${status.toLowerCase()}.`, 'warning');
+        loadWelfareRequests();
+    });
 }
 
 function getWelfareColor(status) {
-    if (status === 'Approved') return 'success';
-    if (status === 'Rejected') return 'danger';
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'approved' || normalized === 'completed') return 'success';
+    if (normalized === 'rejected') return 'danger';
     return 'warning text-dark';
+}
+
+function getWelfareStatusIcon(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'approved' || normalized === 'completed') return 'fa-circle-check';
+    if (normalized === 'rejected') return 'fa-circle-xmark';
+    return 'fa-clock';
+}
+
+function formatWelfareStatus(status) {
+    const normalized = String(status || 'Pending Review').toLowerCase();
+    if (normalized === 'approved') return 'Approved';
+    if (normalized === 'rejected') return 'Rejected';
+    if (normalized === 'completed') return 'Completed';
+    return 'Pending Review';
 }
 
 function loadPrayerAdmin() {
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('prayerDate').value = today;
+    renderReligiousActivitiesAdmin();
     fetch(`${API_URL}?action=getPrayerTimes&date=${today}`)
     .then(response => response.json())
     .then(result => {
@@ -1308,6 +1508,195 @@ function renderPrayerPreview(data) {
             `).join('')}
         </div>
     `;
+}
+
+function getReligiousActivities() {
+    return JSON.parse(localStorage.getItem('adminReligiousActivities')) || {
+        jummah: [],
+        ramadan: [],
+        lectures: []
+    };
+}
+
+function saveReligiousActivities(data) {
+    localStorage.setItem('adminReligiousActivities', JSON.stringify(data));
+}
+
+function saveReligiousActivity(type) {
+    const data = getReligiousActivities();
+    let item = null;
+    const editId = editingReligiousActivity?.type === type ? editingReligiousActivity.id : null;
+
+    if (type === 'jummah') {
+        const date = document.getElementById('jummahDate').value;
+        const time = document.getElementById('jummahTime').value;
+        const topic = document.getElementById('jummahTopic').value.trim();
+        const speaker = document.getElementById('jummahSpeaker').value.trim();
+        const note = document.getElementById('jummahNote').value.trim();
+        if (!date || !time || !topic) {
+            showNotification('Date, time, and khutbah topic are required.', 'warning');
+            return;
+        }
+        item = { id: editId || Date.now(), date, time, topic, speaker, note };
+        data.jummah = upsertReligiousActivity(data.jummah, item, editId);
+        ['jummahDate', 'jummahTime', 'jummahTopic', 'jummahSpeaker', 'jummahNote'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    if (type === 'ramadan') {
+        const eventName = document.getElementById('ramadanEvent').value.trim();
+        const date = document.getElementById('ramadanDate').value.trim();
+        const time = document.getElementById('ramadanTime').value.trim();
+        const note = document.getElementById('ramadanNote').value.trim();
+        if (!eventName || !date) {
+            showNotification('Ramadan event and date are required.', 'warning');
+            return;
+        }
+        item = { id: editId || Date.now(), event: eventName, date, time, note };
+        data.ramadan = upsertReligiousActivity(data.ramadan, item, editId);
+        ['ramadanEvent', 'ramadanDate', 'ramadanTime', 'ramadanNote'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    if (type === 'lecture') {
+        const title = document.getElementById('lectureTitle').value.trim();
+        const schedule = document.getElementById('lectureSchedule').value.trim();
+        const speaker = document.getElementById('lectureSpeaker').value.trim();
+        const description = document.getElementById('lectureDescription').value.trim();
+        if (!title || !schedule) {
+            showNotification('Lecture title and schedule are required.', 'warning');
+            return;
+        }
+        item = { id: editId || Date.now(), title, schedule, speaker, description };
+        data.lectures = upsertReligiousActivity(data.lectures, item, editId);
+        ['lectureTitle', 'lectureSchedule', 'lectureSpeaker', 'lectureDescription'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    saveReligiousActivities(data);
+    editingReligiousActivity = null;
+    resetReligiousActivityButtons();
+    renderReligiousActivitiesAdmin();
+    showNotification(editId ? 'Religious activity updated for users.' : 'Religious activity saved for users.', 'success');
+}
+
+function upsertReligiousActivity(items, item, editId) {
+    if (!editId) return [...items, item];
+    return items.map(existing => Number(existing.id) === Number(editId) ? item : existing);
+}
+
+function editReligiousActivity(type, id) {
+    const data = getReligiousActivities();
+    const key = type === 'lecture' ? 'lectures' : type;
+    const item = (data[key] || []).find(entry => Number(entry.id) === Number(id));
+    if (!item) return;
+
+    editingReligiousActivity = { type, id };
+
+    if (type === 'jummah') {
+        document.getElementById('jummahDate').value = item.date || '';
+        document.getElementById('jummahTime').value = item.time || '';
+        document.getElementById('jummahTopic').value = item.topic || '';
+        document.getElementById('jummahSpeaker').value = item.speaker || '';
+        document.getElementById('jummahNote').value = item.note || '';
+        document.getElementById('jummahSaveBtn').innerHTML = '<i class="fas fa-save"></i> Update Jumu\'ah Reminder';
+    }
+
+    if (type === 'ramadan') {
+        document.getElementById('ramadanEvent').value = item.event || '';
+        document.getElementById('ramadanDate').value = item.date || '';
+        document.getElementById('ramadanTime').value = item.time || '';
+        document.getElementById('ramadanNote').value = item.note || '';
+        document.getElementById('ramadanSaveBtn').innerHTML = '<i class="fas fa-save"></i> Update Ramadan Item';
+    }
+
+    if (type === 'lecture') {
+        document.getElementById('lectureTitle').value = item.title || '';
+        document.getElementById('lectureSchedule').value = item.schedule || '';
+        document.getElementById('lectureSpeaker').value = item.speaker || '';
+        document.getElementById('lectureDescription').value = item.description || '';
+        document.getElementById('lectureSaveBtn').innerHTML = '<i class="fas fa-save"></i> Update Lecture';
+    }
+}
+
+function resetReligiousActivityButtons() {
+    const jummahBtn = document.getElementById('jummahSaveBtn');
+    const ramadanBtn = document.getElementById('ramadanSaveBtn');
+    const lectureBtn = document.getElementById('lectureSaveBtn');
+    if (jummahBtn) jummahBtn.innerHTML = '<i class="fas fa-save"></i> Add Jumu\'ah Reminder';
+    if (ramadanBtn) ramadanBtn.innerHTML = '<i class="fas fa-save"></i> Add Ramadan Item';
+    if (lectureBtn) lectureBtn.innerHTML = '<i class="fas fa-save"></i> Add Lecture';
+}
+
+function deleteReligiousActivity(type, id) {
+    const data = getReligiousActivities();
+    const key = type === 'lecture' ? 'lectures' : type;
+    data[key] = (data[key] || []).filter(item => Number(item.id) !== Number(id));
+    saveReligiousActivities(data);
+    renderReligiousActivitiesAdmin();
+    showNotification('Religious activity removed.', 'success');
+}
+
+function renderReligiousActivitiesAdmin() {
+    const container = document.getElementById('religiousActivitiesList');
+    if (!container) return;
+
+    const data = getReligiousActivities();
+    const jummahRows = data.jummah.map(item => `
+        <tr>
+            <td>Jumu'ah</td>
+            <td>${item.date}</td>
+            <td>${item.time || '-'}</td>
+            <td>${item.topic}</td>
+            <td>${item.speaker || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editReligiousActivity('jummah', ${item.id})">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteReligiousActivity('jummah', ${item.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+    const ramadanRows = data.ramadan.map(item => `
+        <tr>
+            <td>Ramadan</td>
+            <td>${item.date}</td>
+            <td>${item.time || '-'}</td>
+            <td>${item.event}</td>
+            <td>${item.note || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editReligiousActivity('ramadan', ${item.id})">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteReligiousActivity('ramadan', ${item.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+    const lectureRows = data.lectures.map(item => `
+        <tr>
+            <td>Lecture</td>
+            <td>${item.schedule}</td>
+            <td>-</td>
+            <td>${item.title}</td>
+            <td>${item.speaker || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editReligiousActivity('lecture', ${item.id})">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteReligiousActivity('lecture', ${item.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+    const rows = jummahRows + ramadanRows + lectureRows;
+
+    container.innerHTML = rows ? `
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Date/Schedule</th>
+                        <th>Time</th>
+                        <th>Title/Event</th>
+                        <th>Speaker/Note</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    ` : '<p class="text-muted">No religious activities have been added yet.</p>';
 }
 
 function addResource() {
