@@ -9,6 +9,9 @@ let adminStudentRequesters = [];
 const realFetch = window.fetch.bind(window);
 const useStaticAdminApi = location.hostname.endsWith('github.io') || location.protocol === 'file:';
 const LOCAL_ADMIN_ACCOUNTS_KEY = 'commujAdminAccounts';
+const DEFAULT_ADMIN_USERNAME = 'admin';
+const DEFAULT_ADMIN_EMAIL = 'commuj.admin@commuj.local';
+const DEFAULT_ADMIN_PASSWORD = 'COMMUJAdmin@2026';
 
 function resolveAdminUrl(url) {
     if (!url) return '';
@@ -304,6 +307,25 @@ async function loginLocalAdmin(payload) {
     const username = String(payload.username || '').trim();
     const password = String(payload.password || '');
     const passwordHash = await hashAdminPassword(password);
+    const accounts = getLocalAdminAccounts();
+    const defaultAdminAlreadySaved = accounts.some(admin =>
+        admin.username.toLowerCase() === DEFAULT_ADMIN_USERNAME ||
+        admin.email.toLowerCase() === DEFAULT_ADMIN_EMAIL
+    );
+
+    if (
+        accounts.length < 2 &&
+        !defaultAdminAlreadySaved &&
+        username.toLowerCase() === DEFAULT_ADMIN_USERNAME &&
+        password === DEFAULT_ADMIN_PASSWORD
+    ) {
+        return registerLocalAdmin({
+            username: DEFAULT_ADMIN_USERNAME,
+            email: DEFAULT_ADMIN_EMAIL,
+            password: DEFAULT_ADMIN_PASSWORD
+        });
+    }
+
     const account = getLocalAdminAccounts().find(admin =>
         (admin.username.toLowerCase() === username.toLowerCase() || admin.email.toLowerCase() === username.toLowerCase()) &&
         admin.passwordHash === passwordHash
