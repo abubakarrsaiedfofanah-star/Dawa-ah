@@ -23,69 +23,6 @@ const ADMIN_LOGIN_LOCKOUT_MS = 5 * 60 * 1000;
 const ADMIN_MAX_FAILED_LOGINS = 5;
 let adminSessionTimeoutId = null;
 
-function adminPhotoStoreKey(admin = currentAdmin) {
-    return admin?.id ? `adminPhoto:${admin.id}` : '';
-}
-
-function getStoredAdminPhoto(admin = currentAdmin) {
-    const key = adminPhotoStoreKey(admin);
-    return key ? localStorage.getItem(key) || '' : '';
-}
-
-function updateAdminPhotoUi() {
-    const photo = getStoredAdminPhoto();
-    const headerPhoto = document.getElementById('adminHeaderPhoto');
-    const headerIcon = document.getElementById('adminHeaderIcon');
-    const preview = document.getElementById('adminPhotoPreview');
-    const previewIcon = document.getElementById('adminPhotoPreviewIcon');
-
-    [headerPhoto, preview].forEach(img => {
-        if (!img) return;
-        img.src = photo;
-        img.classList.toggle('d-none', !photo);
-    });
-    headerIcon?.classList.toggle('d-none', Boolean(photo));
-    previewIcon?.classList.toggle('d-none', Boolean(photo));
-}
-
-function saveAdminPhoto() {
-    const input = document.getElementById('adminPhotoInput');
-    const file = input?.files?.[0];
-    if (!file) {
-        showNotification('Choose a photo first.', 'warning');
-        return;
-    }
-    if (!file.type.startsWith('image/')) {
-        showNotification('Please choose a valid image file.', 'danger');
-        return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-        showNotification('Photo must be 2MB or smaller.', 'danger');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = event => {
-        const key = adminPhotoStoreKey();
-        if (!key) return;
-        localStorage.setItem(key, event.target.result);
-        if (input) input.value = '';
-        updateAdminPhotoUi();
-        showNotification('Admin photo saved.', 'success');
-    };
-    reader.readAsDataURL(file);
-}
-
-function removeAdminPhoto() {
-    const key = adminPhotoStoreKey();
-    if (!key) return;
-    localStorage.removeItem(key);
-    const input = document.getElementById('adminPhotoInput');
-    if (input) input.value = '';
-    updateAdminPhotoUi();
-    showNotification('Admin photo removed.', 'info');
-}
-
 function resolveAdminUrl(url) {
     if (!url) return '';
     if (/^(https?:|mailto:|tel:|data:|blob:)/i.test(url)) return url;
@@ -1154,7 +1091,6 @@ function setAdminUser(user) {
     };
     sessionStorage.setItem('currentAdminUser', JSON.stringify(currentAdmin));
     document.getElementById('adminName').textContent = currentAdmin.fullName || currentAdmin.username;
-    updateAdminPhotoUi();
     updateAdminAccessUi();
 }
 

@@ -198,26 +198,6 @@
             color: var(--primary-color);
         }
 
-        .admin-user-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .admin-avatar,
-        .admin-avatar-preview {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(0, 128, 0, 0.18);
-            background: #fff;
-        }
-
-        .admin-avatar-preview {
-            width: 72px;
-            height: 72px;
-        }
         
         .admin-content {
             display: none;
@@ -550,9 +530,7 @@
         <div class="main-content">
             <div class="admin-header">
                 <h2 id="pageTitle"><i class="fas fa-chart-line"></i> Dashboard</h2>
-                <div class="admin-user-chip">
-                    <img id="adminHeaderPhoto" class="admin-avatar d-none" src="" alt="Admin photo">
-                    <i id="adminHeaderIcon" class="fas fa-user-shield"></i>
+                <div>
                     <span id="adminName">Admin</span> | <a href="#" onclick="logoutAdmin()" class="text-danger text-decoration-none">Logout</a>
                 </div>
             </div>
@@ -966,19 +944,6 @@
 
             <div id="accountView" class="admin-content">
                 <div class="content-card">
-                    <div class="form-section">
-                        <h4><i class="fas fa-user-circle"></i> My Photo</h4>
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <img id="adminPhotoPreview" class="admin-avatar-preview d-none" src="" alt="Admin photo preview">
-                            <i id="adminPhotoPreviewIcon" class="fas fa-user-shield fa-3x text-muted"></i>
-                            <div>
-                                <input type="file" class="form-control mb-2" id="adminPhotoInput" accept="image/*">
-                                <button class="btn btn-primary btn-sm" type="button" onclick="saveAdminPhoto()"><i class="fas fa-save"></i> Save Photo</button>
-                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="removeAdminPhoto()"><i class="fas fa-trash"></i> Remove</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="form-section">
                         <h4><i class="fas fa-key"></i> My Password</h4>
                         <form id="adminChangePasswordForm">
