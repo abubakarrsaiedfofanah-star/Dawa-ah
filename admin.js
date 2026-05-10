@@ -1,7 +1,8 @@
 // Dawa'ah Admin Panel JavaScript
 
 const XAMPP_BASE_URL = 'http://localhost/dawaah/';
-const API_URL = location.protocol === 'file:' ? XAMPP_BASE_URL + 'admin_api.php' : 'admin_api.php';
+const useXamppApi = location.protocol === 'file:' || Boolean(location.port && !['80', '443'].includes(location.port));
+const API_URL = useXamppApi ? XAMPP_BASE_URL + 'admin_api.php' : 'admin_api.php';
 let currentAdmin = null;
 let editingReligiousActivity = null;
 let adminStudentRequesters = [];
@@ -22,6 +23,25 @@ const ADMIN_SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 const ADMIN_LOGIN_LOCKOUT_MS = 5 * 60 * 1000;
 const ADMIN_MAX_FAILED_LOGINS = 5;
 let adminSessionTimeoutId = null;
+
+function parseJsonResponse(response) {
+    if (response && typeof response.text === 'function') {
+        return response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                const preview = text.trim().slice(0, 120) || 'empty response';
+                const url = response.url || 'API request';
+                const status = response.status ? `HTTP ${response.status}` : 'Invalid response';
+                throw new Error(`${status} from ${url}: expected JSON but received ${preview}`);
+            }
+        });
+    }
+    if (response && typeof response.json === 'function') {
+        return response.json();
+    }
+    return Promise.reject(new Error('Invalid API response'));
+}
 
 function updateAdminPhotoUi() {
     const photo = currentAdmin?.profile_photo ? resolveAdminUrl(currentAdmin.profile_photo) : '';
@@ -57,7 +77,7 @@ function saveAdminPhoto() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not save admin photo');
         setAdminUser(result.data);
@@ -74,7 +94,7 @@ function removeAdminPhoto() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not remove admin photo');
         setAdminUser(result.data);
@@ -668,7 +688,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function checkAdminAuth() {
     try {
         const response = await fetch(`${API_URL}?action=checkAdminSession`);
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
         if (!result.success || !result.data) {
             showAdminLogin(useStaticAdminApi ? getLocalAdminPrompt() : '');
             return false;
@@ -697,7 +717,7 @@ async function refreshAdminSetupUi() {
     const loginButton = document.getElementById('adminLoginTabBtn');
     try {
         const response = await fetch(`${API_URL}?action=getAdminSetupStatus`);
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
         const canRegister = Boolean(result.success && result.data?.can_register_first_admin);
         registerItem?.classList.toggle('d-none', !canRegister);
         if (!canRegister && loginButton) {
@@ -1203,7 +1223,7 @@ async function handleAdminLogin(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
 
         if (!result.success || !result.data) {
             recordAdminLoginFailure();
@@ -1287,7 +1307,7 @@ async function handleAdminRegistration(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
         });
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
 
         if (!result.success || !result.data) {
             showAdminLogin(result.message || 'Could not create admin account.');
@@ -1425,7 +1445,7 @@ function loadAccountAdminTools() {
 
 function loadMyAdminActivityLogs() {
     fetch(`${API_URL}?action=getMyAdminActivityLogs`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) {
             throw new Error(result.message || 'Could not load your activity');
@@ -1449,7 +1469,7 @@ function escapeAdminText(value) {
 
 function loadAdminAccounts() {
     fetch(`${API_URL}?action=listAdminAccounts`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) {
             throw new Error(result.message || 'Could not load admin accounts');
@@ -1514,7 +1534,7 @@ function loadAdminAccounts() {
 
 function loadAdminActivityLogs() {
     fetch(`${API_URL}?action=getAdminActivityLogs`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) {
             throw new Error(result.message || 'Could not load admin activity');
@@ -1611,7 +1631,7 @@ function opposeAdminActivity(logId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log_id: logId, reason })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not record opposition');
         showNotification('Opposition recorded', 'success');
@@ -1628,7 +1648,7 @@ function deleteActivityItemFromLog(logId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log_id: logId, reason })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not delete item');
         showNotification('Item deleted and action recorded', 'success');
@@ -1645,7 +1665,7 @@ function approvePendingAdminActivity(logId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log_id: logId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not approve action');
         showNotification('Pending action approved and applied', 'success');
@@ -1663,7 +1683,7 @@ function rejectPendingAdminActivity(logId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log_id: logId, reason })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not reject action');
         showNotification('Pending action rejected', 'success');
@@ -1680,7 +1700,7 @@ function undoMyAdminActivity(logId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log_id: logId, reason })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not undo action');
         showNotification('Your action was undone', 'success');
@@ -1797,7 +1817,7 @@ async function handleManagedAdminCreate(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
         });
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
         if (!result.success) {
             throw new Error(result.message || 'Could not add admin account');
         }
@@ -1819,7 +1839,7 @@ function removeManagedAdmin(adminId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admin_id: adminId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not remove admin account');
         showNotification('Admin account removed', 'success');
@@ -1841,7 +1861,7 @@ function resetManagedAdminPassword(adminId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admin_id: adminId, new_password: newPassword })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not reset password');
         showNotification('Admin password reset successfully', 'success');
@@ -1877,7 +1897,7 @@ async function handleAdminPasswordChange(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
         });
-        const result = await response.json();
+        const result = await parseJsonResponse(response);
         if (!result.success) {
             throw new Error(result.message || 'Could not change password');
         }
@@ -1893,7 +1913,7 @@ async function handleAdminPasswordChange(event) {
 
 function loadDashboardStats() {
     fetch(`${API_URL}?action=getDashboardStats`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const stats = result.data || {};
         setText('memberCount', stats.members || 0);
@@ -1946,7 +1966,7 @@ function formatMoney(value) {
 function loadDashboardDetail(type) {
     setActiveDashboardCard(type);
     fetch(`${API_URL}?action=getDashboardDetail&type=${encodeURIComponent(type)}`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) {
             throw new Error(result.message || 'Could not load database records');
@@ -2020,7 +2040,7 @@ function approvePaymentRecord(paymentId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payment_id: paymentId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not approve payment');
         showNotification('Payment approved. Receipt can now be issued.', 'success');
@@ -2037,7 +2057,7 @@ function approveDonationRecord(donationId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ donation_id: donationId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not approve donation');
         showNotification('Donation approved. Receipt can now be issued.', 'success');
@@ -2111,7 +2131,7 @@ function createAnnouncement() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Announcement created successfully!', 'success');
@@ -2132,7 +2152,7 @@ function createAnnouncement() {
 
 function loadAnnouncements() {
     fetch(`${API_URL}?action=getAnnouncements`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('announcementsList');
         if (!result.data || result.data.length === 0) {
@@ -2172,7 +2192,7 @@ function deleteAnnouncementItem(announcementId) {
         },
         body: JSON.stringify({ announcement_id: announcementId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Announcement deleted!', 'success');
@@ -2190,7 +2210,7 @@ function deleteAnnouncementItem(announcementId) {
 
 function loadAnnouncementCount() {
     fetch(`${API_URL}?action=getAnnouncements`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         document.getElementById('announcementCount').textContent = (result.data || []).length;
     })
@@ -2232,7 +2252,7 @@ function createEvent() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Event created successfully!', 'success');
@@ -2256,7 +2276,7 @@ function createEvent() {
 
 function loadEvents() {
     fetch(`${API_URL}?action=getEvents`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('eventsList');
         if (!result.data || result.data.length === 0) {
@@ -2291,7 +2311,7 @@ function loadEvents() {
 
 function loadEventRegistrations() {
     fetch(`${API_URL}?action=getEventRegistrations`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('eventRegistrationsList');
         if (!container) return;
@@ -2355,7 +2375,7 @@ function deleteEventItem(eventId) {
         },
         body: JSON.stringify({ event_id: eventId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Event deleted!', 'success');
@@ -2373,7 +2393,7 @@ function deleteEventItem(eventId) {
 
 function loadEventCount() {
     fetch(`${API_URL}?action=getEvents`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         document.getElementById('eventCount').textContent = (result.data || []).length;
     })
@@ -2420,7 +2440,7 @@ function addLeader() {
         method: 'POST',
         body: data
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Leadership member added successfully!', 'success');
@@ -2447,7 +2467,7 @@ function addLeader() {
 
 function loadLeadership() {
     fetch(`${API_URL}?action=getLeaders`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('leadershipList');
         if (!result.data || result.data.length === 0) {
@@ -2490,7 +2510,7 @@ function deleteLeaderItem(leaderId) {
         },
         body: JSON.stringify({ leader_id: leaderId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Leader deleted!', 'success');
@@ -2508,7 +2528,7 @@ function deleteLeaderItem(leaderId) {
 
 function loadLeadershipCount() {
     fetch(`${API_URL}?action=getLeaders`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         document.getElementById('leaderCount').textContent = (result.data || []).length;
     })
@@ -2558,7 +2578,7 @@ function saveGalleryItemData(title, description, imageUrl) {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Gallery item added successfully!', 'success');
@@ -2604,7 +2624,7 @@ function previewAdminGalleryImage() {
 
 function loadGallery() {
     fetch(`${API_URL}?action=getGallery`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('galleryList');
         if (!result.data || result.data.length === 0) {
@@ -2646,7 +2666,7 @@ function deleteGalleryItem(galleryId) {
         },
         body: JSON.stringify({ gallery_id: galleryId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Gallery item deleted!', 'success');
@@ -2664,7 +2684,7 @@ function deleteGalleryItem(galleryId) {
 
 function loadGalleryCount() {
     fetch(`${API_URL}?action=getGallery`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         document.getElementById('galleryCount').textContent = (result.data || []).length;
     })
@@ -2703,7 +2723,7 @@ function addHadith() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Hadith added successfully!', 'success');
@@ -2725,7 +2745,7 @@ function addHadith() {
 
 function loadHadiths() {
     fetch(`${API_URL}?action=getHadiths`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('hadithsList');
         if (!result.data || result.data.length === 0) {
@@ -2768,7 +2788,7 @@ function deleteHadithItem(hadithId) {
         },
         body: JSON.stringify({ hadith_id: hadithId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (result.success) {
             showNotification('Hadith deleted!', 'success');
@@ -2822,7 +2842,7 @@ function showNotification(message, type) {
 
 function loadWelfareRequests() {
     Promise.all([
-        fetch(`${API_URL}?action=getWelfareRequests`).then(response => response.json()).catch(() => ({ success: false, data: [] })),
+        fetch(`${API_URL}?action=getWelfareRequests`).then(response => parseJsonResponse(response)).catch(() => ({ success: false, data: [] })),
         loadAdminStudentRequesters()
     ])
     .then(([result]) => {
@@ -2832,7 +2852,7 @@ function loadWelfareRequests() {
 
 function loadAdminStudentRequesters() {
     return fetch(`${API_URL}?action=getDashboardDetail&type=students`)
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             const databaseStudents = result.success && Array.isArray(result.data) ? result.data : [];
             const localStudents = readStore('allMembers').filter(member => (member.role || 'student') === 'student');
@@ -3017,7 +3037,7 @@ function updateWelfareStatus(requestId, status) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: requestId, status: status, notes: '' })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not update request');
         applyLocalWelfareStatus();
@@ -3058,7 +3078,7 @@ function loadPrayerAdmin() {
     document.getElementById('prayerDate').value = today;
     renderReligiousActivitiesAdmin();
     fetch(`${API_URL}?action=getPrayerTimes&date=${today}`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const data = result.data || {};
         document.getElementById('prayerFajr').value = (data.fajr || '').slice(0, 5);
@@ -3088,7 +3108,7 @@ function savePrayerTimes() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not save prayer times');
         showNotification('Prayer timetable saved.', 'success');
@@ -3403,7 +3423,7 @@ function addResource() {
         method: 'POST',
         body: data
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not add resource');
         ['resourceTitle', 'resourceDescription', 'resourceCategory', 'resourceUrl'].forEach(id => document.getElementById(id).value = '');
@@ -3416,7 +3436,7 @@ function addResource() {
 
 function loadResourcesAdmin() {
     fetch(`${API_URL}?action=getResources`)
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         const container = document.getElementById('resourcesList');
         const resources = result.data || [];
@@ -3446,7 +3466,7 @@ function deleteResource(resourceId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resource_id: resourceId })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) throw new Error(result.message || 'Could not delete resource');
         showNotification('Resource deleted.', 'success');
@@ -3461,7 +3481,7 @@ function seedSampleDatabaseData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success) {
             throw new Error(result.message || 'Could not add sample database records');

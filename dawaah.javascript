@@ -82,15 +82,35 @@ const yearOptions = ['1', '2', '3', '4', '5', '6'];
 const semesterOptions = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 const XAMPP_BASE_URL = 'http://localhost/dawaah/';
+const useXamppApi = location.protocol === 'file:' || Boolean(location.port && !['80', '443'].includes(location.port));
 const frontendOnly = false;
 const realAppFetch = window.fetch.bind(window);
 
 window.fetch = function(resource, options = {}) {
-    if (location.protocol === 'file:' && typeof resource === 'string' && /^(api|admin_api|dawaah|mpesa_api)\.php/.test(resource)) {
+    if (useXamppApi && typeof resource === 'string' && /^(api|admin_api|dawaah|mpesa_api)\.php/.test(resource)) {
         return realAppFetch(XAMPP_BASE_URL + resource, options);
     }
     return realAppFetch(resource, options);
 };
+
+function parseJsonResponse(response) {
+    if (response && typeof response.text === 'function') {
+        return response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                const preview = text.trim().slice(0, 120) || 'empty response';
+                const url = response.url || 'API request';
+                const status = response.status ? `HTTP ${response.status}` : 'Invalid response';
+                throw new Error(`${status} from ${url}: expected JSON but received ${preview}`);
+            }
+        });
+    }
+    if (response && typeof response.json === 'function') {
+        return response.json();
+    }
+    return Promise.reject(new Error('Invalid API response'));
+}
 
 function readList(key) {
     return JSON.parse(localStorage.getItem(key)) || [];
@@ -219,7 +239,7 @@ function loadLeadershipContent() {
 
     const leadershipRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getLeaders'))
-        : fetch('admin_api.php?action=getLeaders').then(response => response.json());
+        : fetch('admin_api.php?action=getLeaders').then(response => parseJsonResponse(response));
 
     leadershipRequest
     .then(result => {
@@ -293,7 +313,7 @@ function loadGalleryContent() {
 
     const galleryRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getGallery'))
-        : fetch('admin_api.php?action=getGallery').then(response => response.json());
+        : fetch('admin_api.php?action=getGallery').then(response => parseJsonResponse(response));
 
     galleryRequest
     .then(result => {
@@ -692,7 +712,7 @@ function loginWithServerSession(username, password, selectedRole) {
         credentials: 'same-origin',
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success || !result.data) {
             throw new Error(result.message || 'Invalid username or password.');
@@ -710,7 +730,7 @@ function loginWithServerSession(username, password, selectedRole) {
         return fetch(`api.php?action=getStudentByIdentifier&identifier=${encodeURIComponent(username)}`, {
             credentials: 'same-origin'
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(studentResult => {
             const student = studentResult.success ? studentResult.data : {};
             const localUser = getRegisteredUser(username) || {};
@@ -919,7 +939,7 @@ function saveRegistrationToDatabase(newUser, fullName, password) {
             role: newUser.role
         })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(userResult => {
         if (!userResult.success) {
             throw new Error(userResult.message || 'Could not create user in database');
@@ -955,7 +975,7 @@ function saveRegistrationToDatabase(newUser, fullName, password) {
             method: 'POST',
             body: studentData
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(studentResult => {
             if (!studentResult.success) {
                 throw new Error(studentResult.message || 'Could not create student record in database');
@@ -1349,7 +1369,7 @@ function saveProfileToDatabase(profile) {
                 body: profileData
             });
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not update profile');
@@ -1422,7 +1442,7 @@ function loadPrayerTimes() {
     const today = new Date().toISOString().slice(0, 10);
     const prayerRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getPrayerTimes'))
-        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => response.json());
+        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => parseJsonResponse(response));
 
     prayerRequest
     .then(result => {
@@ -1588,7 +1608,7 @@ function mergeEvents(events) {
 function loadEventsFromApi() {
     const eventsRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getEvents'))
-        : fetch('admin_api.php?action=getEvents&limit=100').then(response => response.json());
+        : fetch('admin_api.php?action=getEvents&limit=100').then(response => parseJsonResponse(response));
 
     return eventsRequest
         .then(result => {
@@ -1698,7 +1718,7 @@ function submitEventRegistration() {
                 student_id: studentId
             })
         }))
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not register for event in the database');
@@ -1789,7 +1809,7 @@ function saveEvent() {
                 max_participants: 100
             })
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Error creating event');
@@ -1843,7 +1863,7 @@ function loadAnnouncements() {
 
     const announcementRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getAnnouncements'))
-        : fetch('admin_api.php?action=getAnnouncements').then(response => response.json());
+        : fetch('admin_api.php?action=getAnnouncements').then(response => parseJsonResponse(response));
 
     announcementRequest
     .then(result => {
@@ -1906,7 +1926,7 @@ function loadResources() {
 
     const resourceRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getResources'))
-        : fetch('admin_api.php?action=getResources').then(response => response.json());
+        : fetch('admin_api.php?action=getResources').then(response => parseJsonResponse(response));
 
     resourceRequest
     .then(result => {
@@ -2024,7 +2044,7 @@ function submitWelfareRequest() {
                 submitted_by_year: request.submittedByYear
             })
         }))
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not save welfare request to database');
@@ -2131,7 +2151,7 @@ function syncWelfareRequestsFromAdmin() {
     if (!currentUser || frontendOnly) return Promise.resolve();
 
     return fetch('admin_api.php?action=getWelfareRequests')
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success || !Array.isArray(result.data)) return;
             const userKey = getCurrentWelfareUserKey();
@@ -2362,7 +2382,7 @@ function processPayment() {
                 status: 'pending'
             })
         }))
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not save payment to database');
@@ -2413,7 +2433,7 @@ function startMpesaPayment(details) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         }))
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not start M-Pesa STK Push');
@@ -2464,7 +2484,7 @@ function pollMpesaStatus(checkoutRequestId, source, attempts = 0) {
 
     setTimeout(() => {
         fetch(`mpesa_api.php?action=getTransactionStatus&checkout_request_id=${encodeURIComponent(checkoutRequestId)}`)
-            .then(response => response.json())
+            .then(response => parseJsonResponse(response))
             .then(result => {
                 if (!result.success || !result.data) {
                     pollMpesaStatus(checkoutRequestId, source, attempts + 1);
@@ -2543,7 +2563,7 @@ function getCurrentStudentId() {
     }
 
     return fetch(`api.php?action=getStudentByIdentifier&identifier=${encodeURIComponent(identifier)}`)
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success || !result.data?.id) {
                 return ensureCurrentUserStudentRecord();
@@ -2579,7 +2599,7 @@ function ensureCurrentUserStudentRecord() {
             local_guardian: currentUser?.localGuardian
         })
     })
-    .then(response => response.json())
+    .then(response => parseJsonResponse(response))
     .then(result => {
         if (!result.success || !result.data?.student_id) {
             throw new Error(result.message || 'Could not create student record in the database.');
@@ -2767,7 +2787,7 @@ function submitDonation() {
                 status: 'pending'
             })
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Could not save donation to database');
@@ -2890,7 +2910,7 @@ function downloadDonationReceipt(index) {
 function loadMemberDatabase() {
     if (!frontendOnly) {
         fetch(`api.php?action=getAllStudents&${authQuery()}`)
-            .then(response => response.json())
+            .then(response => parseJsonResponse(response))
             .then(result => {
                 if (!result.success || !Array.isArray(result.data)) return;
                 const databaseMembers = result.data.map(student => ({
@@ -3642,7 +3662,7 @@ function loadDashboardPrayerTimes() {
     const today = new Date().toISOString().slice(0, 10);
     const prayerRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getPrayerTimes'))
-        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => response.json());
+        : fetch(`admin_api.php?action=getPrayerTimes&date=${today}`).then(response => parseJsonResponse(response));
     prayerRequest.then(result => {
         const data = result.data || {};
         const prayers = [
@@ -3774,7 +3794,7 @@ function initializeHadiths() {
 function loadAllHadiths() {
     const hadithRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getAllHadiths'))
-        : fetch('dawaah.php?action=getAll').then(response => response.json());
+        : fetch('dawaah.php?action=getAll').then(response => parseJsonResponse(response));
 
     return hadithRequest
         .then(data => {
@@ -3798,7 +3818,7 @@ function loadAllHadiths() {
 function loadDailyHadith() {
     const dailyRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getDailyHadith'))
-        : fetch('dawaah.php?action=getDaily').then(response => response.json());
+        : fetch('dawaah.php?action=getDaily').then(response => parseJsonResponse(response));
 
     return dailyRequest
         .then(data => {
@@ -3980,7 +4000,7 @@ function loadAdminGallery() {
 
     const galleryRequest = frontendOnly
         ? Promise.resolve(getStaticApiData('getGallery'))
-        : fetch('admin_api.php?action=getGallery').then(response => response.json());
+        : fetch('admin_api.php?action=getGallery').then(response => parseJsonResponse(response));
 
     galleryRequest
     .then(result => {
@@ -4064,7 +4084,7 @@ function saveGalleryItem() {
                     uploaded_by: currentUser?.id || 0
                 })
             })
-            .then(response => response.json())
+            .then(response => parseJsonResponse(response))
             .then(result => {
                 if (!result.success) {
                     throw new Error(result.message || 'Error saving gallery item');
@@ -4127,7 +4147,7 @@ function removeGalleryItem(index) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ gallery_id: index })
         })
-        .then(response => response.json())
+        .then(response => parseJsonResponse(response))
         .then(result => {
             if (!result.success) {
                 throw new Error(result.message || 'Error removing gallery item');
